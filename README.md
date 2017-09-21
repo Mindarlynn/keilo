@@ -79,3 +79,44 @@ int main(){
   }
 }
 ```
+
+## data file
+keilo database use "*.klo" as an extension.
+
+name[] : database
+name{} : table
+() : row
+a:b; : record
+
+### format
+```
+database
+[
+  table1
+  {
+    (
+      index:1;
+      name:yegu kwon;
+      age:19;
+    )
+    (
+      index:2;
+      name:l0g3x;
+      age:19;
+    )
+  }
+  table2
+  {
+    (
+      index:1;
+      math:70;
+      english:80;
+    )
+    (
+      index:2;
+      math:50;
+      english:90;
+    )
+  }
+]
+```
