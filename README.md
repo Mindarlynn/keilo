@@ -88,7 +88,7 @@ int main(){
 ```
 
 ## data file
-keilo database use "*.klo" as an extension.
+keilo database use <b><i>*.klo</i></b> as an extension.
 
 ### element
 - name[] : database
