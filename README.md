@@ -73,4 +73,9 @@ int main(){
          std::cout << field.first << " :" << field.second << std::endl;
       }
     }
+  }
+  catch(std::exception& e){
+    std::cerr << e.what() << std::endl;
+  }
+}
 ```
