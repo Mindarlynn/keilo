@@ -90,10 +90,11 @@ int main(){
 ## data file
 keilo database use "*.klo" as an extension.
 
-name[] : database
-name{} : table
-() : record
-a:b; : instance
+### element
+- name[] : database
+- name{} : table
+- () : record
+- a:b; : instance
 
 ### format
 ```
