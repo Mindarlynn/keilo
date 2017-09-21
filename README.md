@@ -29,50 +29,57 @@ int main(){
     
     // select table.
     // throw exception when table does not exist in database.
-    keilo_table table1 = database.select_table("table1");
-    keilo_table table2 = database.select_table("table2");
+    keilo_table table1 = database->select_table("table1");
+    keilo_table table2 = database->select_table("table2");
     
     // join with value of index.
-    keilo_table joined_table = table1.join(table2);
+    keilo_table joined_table = table1->join(table2);
     
-    // keilo_row : std::list<keilo_field>
-    keilo_row tmp_row;
+    // keilo_record : std::list<keilo_field>
+    keilo_record record;
     
-    // keilo_field : std::pair<std::string, std::string>
-    keilo_field index = std::make_pair("index", "10");
-    keilo_field name = std::make_pair("name", "yegu kwon");
+    // keilo_instance : std::pair<std::string, std::string>
+    keilo_instance index{ "index", "10" };
+    keilo_instance name{ "name", "yegu kwon" };
     
     // parameters(attribute, field)
-    row.push_back(index);
-    row.push_back(name);
+    record.push_back(index);
+    record.push_back(name);
     
     // insert row into table that sort element with value of index.
     // throw exception when table has element that has same index with parameter's index.
-    joined_table.insert(add_row);
+    joined_table.insert(record);
     
     // throw exception when attributes or fields does not exist.
-    // parameters(dst_attribute, dst_field, src_attribute, src_field)
-    joined_table.update("index", "10", "name", "yegu kwon");
+    // parameters(key, value)
+    joined_table.update(index, name);
     
     // throw exception when attribute and field does not exist.
-    // parameters(attribute, field)
-    joined_table.remove("name", "yegu kwon");
+    // parameters(instance)
+    joined_table.remove(name);
+    
+    // add table to database.
+    // throw exception when there is table that has same name as parameters'
+    database->add_table(joined_table);
     
     // throw exception when attribute or field does not exist.
     // parameters(attribute, field)
-    auto selected_row = table1.select_row("index", "10");
+    auto selected_record = table1->select_record(index);
     
-    for(const auto& field : selected_row){
-      std::cout << field.first << " :" << field.second << std::endl;
+    for(const auto& instance : selected_record){
+      std::cout << instance.first << " :" << instance.second << std::endl;
     }
     
     // select all rows
-    auto rows = joined_table.get_rows();
-    for(const auto& row : rows){
-      for(const auto& field : row){
-         std::cout << field.first << " :" << field.second << std::endl;
+    auto records = joined_table.get_records();
+    for(const auto& record : records){
+      for(const auto& instance : record){
+         std::cout << instance.first << " :" << instance.second << std::endl;
       }
     }
+    
+    // export database to file
+    server.export_database("database", "example2.klo");
   }
   catch(std::exception& e){
     std::cerr << e.what() << std::endl;
@@ -85,8 +92,8 @@ keilo database use "*.klo" as an extension.
 
 name[] : database
 name{} : table
-() : row
-a:b; : record
+() : record
+a:b; : instance
 
 ### format
 ```
