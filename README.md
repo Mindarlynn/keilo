@@ -1,7 +1,7 @@
 # keilo
 
 "keilo" is c++ database server that created by yegu kwon(l0g3x). This code is based on c++ 14 and can be compiled with commonly available compilers such as MSVC. <br/>
-Tested platform : Windows10 ver 1703(build 15063.608)
+Tested platform : Windows10 ver 1703(build 15063.608), msvc 14.1
 
 ## build
 ### 1. import codes directly to project
