@@ -42,7 +42,7 @@ int main(){
     keilo_instance index{ "index", "10" };
     keilo_instance name{ "name", "yegu kwon" };
     
-    // parameters(attribute, field)
+    // parameters(identifier, value)
     record.push_back(index);
     record.push_back(name);
     
