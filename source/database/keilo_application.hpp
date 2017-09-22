@@ -1,15 +1,13 @@
 #pragma once
 
+#include "keilo_core.hpp"
 #include "keilo_database.hpp"
 
 #include <string>
 #include <mutex>
 
-class keilo_server
+class keilo_application
 {
-public:
-	void run();
-
 public:
 	void import_file(std::string file_name);
 	keilo_database* select_database(std::string _name);

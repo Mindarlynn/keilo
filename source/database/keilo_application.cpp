@@ -1,4 +1,4 @@
-#include "keilo_server.hpp"
+#include "keilo_application.hpp"
 #include "keilo_database.hpp"
 
 #include <boost/filesystem.hpp>
@@ -7,7 +7,7 @@
 #include <fstream>
 #include <exception>
 
-void keilo_server::import_file(std::string file_name)
+void keilo_application::import_file(std::string file_name)
 {	
 	if (file_name.find(".klo") == std::string::npos)
 		throw std::exception("This program support only *.klo files.");
@@ -27,7 +27,7 @@ void keilo_server::import_file(std::string file_name)
 	m_mutex.unlock();
 }
 
-keilo_database* keilo_server::
+keilo_database* keilo_application::
 select_database(std::string _name)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
@@ -43,7 +43,7 @@ select_database(std::string _name)
 	throw std::exception("Could not find database.");
 }
 
-void keilo_server::export_database(std::string database_name, std::string file_name)
+void keilo_application::export_database(std::string database_name, std::string file_name)
 {
 	auto database = select_database(database_name);
 	std::stringstream file_path;
@@ -71,8 +71,4 @@ void keilo_server::export_database(std::string database_name, std::string file_n
 
 	file.flush();
 	file.close();
-}
-
-void keilo_server::run()
-{
 }
