@@ -106,7 +106,7 @@ void keilo_table::update(keilo_instance _where, keilo_instance _new)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 
-	keilo_record* found_record;
+	keilo_record* found_record = nullptr;
 	auto found = false;
 
 	for (auto& record : m_records) 
