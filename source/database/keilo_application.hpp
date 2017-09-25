@@ -4,21 +4,21 @@
 #include "keilo_database.hpp"
 
 #include <string>
+#include <memory.h>
 #include <mutex>
 
 class keilo_application
 {
 public:
-	void import_file(std::string file_name);
+	std::string create_database(std::string _name);
 	keilo_database* select_database(std::string _name);
-	void export_database(std::string database_name, std::string file_name);
+	
+public:
+	std::string import_file(std::string file_name);
+	std::string export_database(std::string database_name, std::string file_name);
 
 public:
-	inline std::list<keilo_database> get_databases() 
-	{
-		std::lock_guard<std::mutex> mutex_guard(m_mutex);
-		return m_databases;
-	}
+	std::list<keilo_database> get_databases();
 	
 private:
 	std::mutex m_mutex;

@@ -2,11 +2,15 @@
 
 #include <mutex>
 
-keilo_table::keilo_table(std::string _name, std::list<keilo_record> _rows) : m_records(_rows), m_name(_name)
+keilo_table::keilo_table(std::string _name) : m_name(_name), m_records(std::list<keilo_record>())
 {
 }
 
-keilo_table::keilo_table(const keilo_table & _other) : m_records(_other.m_records), m_name(_other.m_name)
+keilo_table::keilo_table(std::string _name, std::list<keilo_record> _rows) : m_name(_name), m_records(_rows)
+{
+}
+
+keilo_table::keilo_table(const keilo_table & _other) : m_name(_other.m_name), m_records(_other.m_records)
 {
 }
 
@@ -25,7 +29,8 @@ keilo_record keilo_table::select_record(keilo_instance _instance)
 			return record;
 		}
 	}
-	throw std::exception(("Could not find identifier \"" + _instance.first +"\" or value\"" + _instance.second + "\".").c_str());
+	return keilo_record();
+	//throw std::exception(("Could not find record that has identifier \"" + _instance.first +"\" or value\"" + _instance.second + "\".").c_str());
 }
 
 keilo_table keilo_table::join(keilo_table* _other)
@@ -69,10 +74,11 @@ keilo_table keilo_table::join(keilo_table* _other)
 	return keilo_table(get_name() + "+" + _other->get_name(), joined_table);
 }
 
-void keilo_table::insert(keilo_record & _record)
+std::string keilo_table::insert(keilo_record & _record)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 	int pos;
+	std::string index;
 
 	for (auto& i_instance : _record) 
 	{
@@ -86,10 +92,12 @@ void keilo_table::insert(keilo_record & _record)
 				if (i_instance != j_instance)
 					continue;
 
-				throw std::exception(("Element that has index \"" + i_instance.second + "\" is already exist in table \"" + get_name() + "\".").c_str());
+				return "Record that has index \"" + i_instance.second + "\" is already exist in table \"" + get_name() + "\".";
+				//throw std::exception(("Element that has index \"" + i_instance.second + "\" is already exist in table \"" + get_name() + "\".").c_str());
 			}
 		}
-		pos = atoi(i_instance.second.c_str());
+		index = i_instance.second;
+		pos = atoi(index.c_str());
 		break;
 	}
 
@@ -100,9 +108,10 @@ void keilo_table::insert(keilo_record & _record)
 		it++;
 
 	m_records.insert(it, _record);
+	return "Successfully inserted record that has index\"" + index + "\" to table \"" + get_name() + "\".";
 }
 
-void keilo_table::update(keilo_instance _where, keilo_instance _new)
+std::string keilo_table::update(keilo_instance _where, keilo_instance _new)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 
@@ -123,8 +132,9 @@ void keilo_table::update(keilo_instance _where, keilo_instance _new)
 		if (found)
 			break;
 	}
-	if (!found) 
-		throw std::exception((_where.first + " \"" + _where.second + "\" does not exist in table \"" + get_name() + "\".").c_str());
+	if (!found)
+		return "Record that has " + _where.first + " \"" + _where.second + "\" does not exist in table \"" + get_name() + "\".";
+		//throw std::exception((_where.first + " \"" + _where.second + "\" does not exist in table \"" + get_name() + "\".").c_str());
 
  	auto changed = false;
 
@@ -137,10 +147,13 @@ void keilo_table::update(keilo_instance _where, keilo_instance _new)
 		changed = true;
 		break;
 	}
-	if (!changed) 
-		throw std::exception(("Identifier \"" + _new.first + "\" does not exist in table \"" + get_name() + "\".").c_str());
+	if (!changed)
+		return "Identifier \"" + _new.first + "\" does not exist in table \"" + get_name() + "\".";
+		//throw std::exception(("Identifier \"" + _new.first + "\" does not exist in table \"" + get_name() + "\".").c_str());
+	return  "Successfully updated record that has " + _where.first + " \"" + _where.second +"\" in table \"" + get_name() + "\".";
 }
-void keilo_table::remove(keilo_instance _instance)
+
+std::string keilo_table::remove(keilo_instance _instance)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 	
@@ -161,8 +174,32 @@ void keilo_table::remove(keilo_instance _instance)
 		if (found) 
 			break;
 	}
-	if(!found)
-		throw std::exception((_instance.first + " \"" + _instance.second + "\" does not exist in table \"" + get_name() + "\".").c_str());
+	if (!found)
+		return "Record that has" + _instance.first + " \"" + _instance.second + "\" does not exist in table \"" + get_name() + "\".";
+		//throw std::exception((_instance.first + " \"" + _instance.second + "\" does not exist in table \"" + get_name() + "\".").c_str());
 
 	m_records.erase(it);
+	return "Successfully removed record that has " + _instance.first + " \"" + _instance.second + "\" in table \"" + get_name() + "\"";
+}
+
+std::list<keilo_record> keilo_table::get_records()
+{
+	std::lock_guard<std::mutex> mutex_guard(m_mutex);
+	return m_records;
+}
+
+int keilo_table::count()
+{
+	std::lock_guard<std::mutex> mutex_guard(m_mutex);
+	return m_records.size();
+}
+
+std::string keilo_table::get_name() const
+{
+	return m_name;
+}
+
+void keilo_table::set_name(std::string _name)
+{
+	m_name = _name;
 }

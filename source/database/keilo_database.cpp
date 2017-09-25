@@ -9,28 +9,34 @@
 #include <boost/algorithm/string.hpp>
 
 
-keilo_database::keilo_database(std::string file_path) : m_file_path(file_path)
-{
-	parse_file();
-}
-
-keilo_database::keilo_database(const keilo_database & _other) : m_file_path(_other.m_file_path), m_tables(_other.m_tables), m_name(_other.m_name)
+keilo_database::keilo_database(std::string _name) : m_name(_name), m_tables(std::list<keilo_table>())
 {
 }
 
-keilo_table* keilo_database::select_table(std::string _name)
+keilo_database::keilo_database(std::ifstream& _file) : m_tables(std::list<keilo_table>())
+{
+	parse_file(_file);
+}
+
+keilo_database::keilo_database(const keilo_database & _other) : m_name(_other.m_name), m_tables(_other.m_tables)
+{
+}
+
+std::string keilo_database::create_table(std::string _name)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
-	for (auto& table : m_tables) {
-		if (table.get_name() != _name) 
-			continue;
 
-		return &table;
+	for (const auto& table : m_tables) {
+		if (table.get_name() == _name)
+			return "Table that was named \"" + _name + "\" already exist in database.";
+		//throw std::exception(("Table \"" + _name + "\" already exist in database.").c_str());
 	}
-	throw std::exception(("Could not find table \"" + _name + "\".").c_str());
+
+	m_tables.push_back(keilo_table(_name));
+	return "Successfully create table that was named \"" + _name + "\".";
 }
 
-void keilo_database::add_table(keilo_table & _table)
+std::string keilo_database::add_table(keilo_table & _table)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 	for (const auto& table : m_tables) 
@@ -38,12 +44,28 @@ void keilo_database::add_table(keilo_table & _table)
 		if (table.get_name() != _table.get_name()) 
 			continue;
 
-		throw std::exception(("Table \"" + _table.get_name() + "\" already exist in database \"" + get_name() + "\".").c_str());
+		return "Table \"" + _table.get_name() + "\" already exist in database \"" + get_name() + "\".";
+		//throw std::exception(("Table \"" + _table.get_name() + "\" already exist in database \"" + get_name() + "\".").c_str());
 	}
 	m_tables.push_back(_table);
+	return "Successfully added table that was named \"" + _table.get_name() + "\".";
 }
 
-void keilo_database::drop_table(std::string _name)
+keilo_table* keilo_database::select_table(std::string _name)
+{
+	std::lock_guard<std::mutex> mutex_guard(m_mutex);
+	for (auto& table : m_tables) {
+		if (table.get_name() != _name)
+			continue;
+
+		return &table;
+	}
+
+	return nullptr;
+	//throw std::exception(("Could not find table that was named \"" + _name + "\".").c_str());
+}
+
+std::string keilo_database::drop_table(std::string _name)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 	std::list<keilo_table>::iterator it;
@@ -57,28 +79,28 @@ void keilo_database::drop_table(std::string _name)
 		break;
 	}
 
-	if (it == m_tables.end()) 
-		throw std::exception(("Table \"" + _name + "\" dose not exist in database \"" + get_name() + "\".").c_str());
+	if (it == m_tables.end())
+		return "Table that was named \"" + _name + "\" dose not exist in database \"" + get_name() + "\".";
+		//throw std::exception(("Table \"" + _name + "\" dose not exist in database \"" + get_name() + "\".").c_str());
 
 	m_tables.erase(it);
+	return "Successfully droped table that was named \"" + _name + "\".";
 }
 
-void keilo_database::parse_file()
+void keilo_database::parse_file(std::ifstream& _file)
 {
-	std::ifstream file(m_file_path);
-
 	std::string file_content;
 	std::stringstream content;
 
-	while (!file.eof()) 
+	while (!_file.eof())
 	{
 		std::string line;
 
-		file >> line;
+		_file >> line;
 		content << line;
 	}
 
-	file.close();
+	_file.close();
 	file_content = content.str();
 
 	int i;
@@ -146,4 +168,20 @@ void keilo_database::parse_file()
 		m_tables.push_back(keilo_table(table_name.str(), records));
 		m_mutex.unlock();
 	}
+}
+
+std::list<keilo_table> keilo_database::get_tables()
+{
+	std::lock_guard<std::mutex> mutex_guard(m_mutex);
+	return m_tables;
+}
+
+std::string keilo_database::get_name() const
+{
+	return m_name;
+}
+
+void keilo_database::set_name(std::string _name)
+{
+	m_name = _name;
 }

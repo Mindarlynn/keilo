@@ -10,36 +10,24 @@
 class keilo_table
 {
 public:
+	keilo_table(std::string _name);
 	keilo_table(std::string _name, std::list<keilo_record> _records);
 	keilo_table(const keilo_table& _other);
 
 public:
 	keilo_record select_record(keilo_instance _instance);
 	keilo_table join(keilo_table* _other);
-	void insert(keilo_record& _record);
-	void update(keilo_instance _destination, keilo_instance _source);
-	void remove(keilo_instance _instance);
+	std::string insert(keilo_record& _record);
+	std::string update(keilo_instance _destination, keilo_instance _source);
+	std::string remove(keilo_instance _instance);
 
 public:
-	inline std::list<keilo_record> get_records() 
-	{
-		std::lock_guard<std::mutex> mutex_guard(m_mutex);
-		return m_records;
-	}
-	inline int count() 
-	{
-		std::lock_guard<std::mutex> mutex_guard(m_mutex);
-		return m_records.size();
-	}
-	inline std::string get_name() const
-	{
-		return m_name;
-	}
+	std::list<keilo_record> get_records();
+	int count();
+	std::string get_name() const;
 
 private:
-	inline void set_name(std::string _name) {
-		m_name = _name;
-	}
+	void set_name(std::string _name);
 
 private:
 	std::string m_name;
