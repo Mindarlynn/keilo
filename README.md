@@ -11,21 +11,21 @@ Tested platform : Windows10 ver 1703(build 15063.608), msvc 14.1
 ```c++
 #include <iostream>
 #include <exception>
-#include <keilo_server.hpp>
+#include <keilo_application.hpp>
 
-#pragma comment(lib, "keilo_server.lib")
+#pragma comment(lib, "keilo_application.lib")
 
 int main(){
-  keilo_server server;
-  
+  keilo_application application;
+ 
   try{
     // import data file.
     // throw exception when file does not exist.
-    server.import_file("example.klo");
+    application.import_file("example.klo");
 
     // select database.
     // throw exception when database does not exist in server.
-    keilo_database database = server.select_database("database");
+    keilo_database database = application.select_database("database");
     
     // select table.
     // throw exception when table does not exist in database.
@@ -42,7 +42,7 @@ int main(){
     keilo_instance index{ "index", "10" };
     keilo_instance name{ "name", "yegu kwon" };
     
-    // parameters(attribute, field)
+    // parameters(identifier, value)
     record.push_back(index);
     record.push_back(name);
     
@@ -79,11 +79,13 @@ int main(){
     }
     
     // export database to file
-    server.export_database("database", "example2.klo");
+    application.export_database("database", "example2.klo");
   }
   catch(std::exception& e){
     std::cerr << e.what() << std::endl;
   }
+  
+  return 0;
 }
 ```
 
