@@ -37,7 +37,6 @@ keilo_database* keilo_application::select_database(std::string _name)
 	}
 
 	return nullptr;
-	//throw std::exception(("Could not find database that was named \"" + _name + "\".").c_str());
 }
 
 std::string keilo_application::import_file(std::string file_name)
@@ -50,16 +49,15 @@ std::string keilo_application::import_file(std::string file_name)
 
 	file_path << boost::filesystem::current_path().generic_string() << "/database/" << file_name;
 
-	std::ifstream file(file_path.str());
+	if (std::ifstream file(file_path.str()); file) {
+		m_mutex.lock();
+		m_databases.push_back(keilo_database(file));
+		m_mutex.unlock();
 
-	if (!file)
+		return "Sucessfully impotred file that was named \"" + file_name + "\".";
+	}
+	else
 		return "File that was named \"" + file_name + "\" does not exist.";
-	//throw std::exception(("File \"" + file_name + "\" does not exist.").c_str());
-
-	m_mutex.lock();
-	m_databases.push_back(keilo_database(file));
-	m_mutex.unlock();
-	return "Sucessfully impotred file that was named \"" + file_name + "\".";
 }
 
 std::string keilo_application::export_database(std::string database_name, std::string file_name)

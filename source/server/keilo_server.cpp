@@ -29,7 +29,7 @@ keilo_server::~keilo_server()
 	for (auto& client : m_clients) {
 		client.close();
 	}
-	
+	m_acceptor.close();
 }
 
 void keilo_server::run()
@@ -229,9 +229,7 @@ std::string keilo_server::select_database(std::string message, size_t pos)
 	while (message[pos] != ';' && pos < message.length())
 		name << message[pos++];
 
-	selected_database = m_application->select_database(name.str());
-
-	if (selected_database)
+	if (selected_database = m_application->select_database(name.str()); selected_database)
 		return "Successfully selected database that was named \"" + name.str() + "\".";
 	else
 		return "Database that was named \"" + name.str() + "\" does not exist in server";
@@ -258,12 +256,10 @@ std::string keilo_server::select_table(std::string message, size_t pos)
 	while (message[pos] != ';' && pos < message.length())
 		name << message[pos++];
 
-	selected_table = selected_database->select_table(name.str());
-
-	if (!selected_table)
-		return "Table that was named \"" + name.str() + "\" does not exist in database \"" + selected_database->get_name() + "\".";
-	else
+	if (selected_table = selected_database->select_table(name.str()); selected_table)
 		return "Successfully selected table that was named \"" + name.str() + "\".";
+	else
+		return "Table that was named \"" + name.str() + "\" does not exist in database \"" + selected_database->get_name() + "\".";
 
 }
 
