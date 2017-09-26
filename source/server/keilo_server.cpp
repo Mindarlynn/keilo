@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <exception>
 
 #include <boost/asio.hpp>
 
@@ -14,7 +15,14 @@ namespace ip = asio::ip;
 
 
 
-keilo_server::keilo_server(int port) : m_application(new keilo_application()), m_clients(std::list < ip::tcp::socket > ()), m_client_processes(std::list<std::thread>()), m_port(port), m_acceptor(m_io_service, ip::tcp::endpoint(ip::address::from_string("127.0.0.1"), m_port)), print_thread(std::thread(&keilo_server::print_output, this))
+keilo_server::keilo_server(int port) : 
+	m_application(new keilo_application()), 
+	m_clients(std::list < ip::tcp::socket > ()), 
+	m_client_processes(std::list<std::thread>()), 
+	m_port(port), 
+	m_acceptor(m_io_service, ip::tcp::endpoint(ip::address::from_string("127.0.0.1"), m_port)),
+	print_thread(std::thread(&keilo_server::print_output, this)),
+	accept_thread(std::thread(&keilo_server::accept_client, this))
 {
 }
 
@@ -22,63 +30,48 @@ keilo_server::~keilo_server()
 {
 	if (running.load())
 		running = false;
-	if (accept_thread->joinable())
-		accept_thread->join();
-	if (accept_thread)
-		delete accept_thread;
-	for (auto& client : m_clients) {
+	if (accept_thread.joinable())
+		accept_thread.join();
+	if (print_thread.joinable())
+		print_thread.join();
+	for (auto& client : m_clients)
 		client.close();
-	}
 	m_acceptor.close();
 }
 
 void keilo_server::run()
 {
-	initialize();
+	m_acceptor.listen(5);
+	running = true;
 }
 
-void keilo_server::import_file(std::string file_name)
-{
-	m_application->import_file(file_name);
-}
-
-void keilo_server::initialize()
+void keilo_server::run_local()
 {
 	running = true;
-
-	m_acceptor.listen(5);
-
-	accept_thread = new std::thread([&]() {
-		while (running.load()) {
-			
-			// accept client
-
-			ip::tcp::socket _client(m_io_service);
-			m_acceptor.accept(_client);
-
-			m_clients.push_back(std::move(_client));
-
-			m_client_processes.push_back(std::thread([&]() {
-				bool found = false;
-				do {
-					process_client(_client);
-					for (const auto& client : m_clients) {
-						if (client.remote_endpoint().address().to_string() == _client.remote_endpoint().address().to_string() &&
-							client.remote_endpoint().port() == _client.remote_endpoint().port())
-						{
-							found = true;
-							break;
-						}
-					}
-				} while (found);
-			}));
+	std::string input;
+	while (running.load()) {
+		if (std::getline(std::cin, input); input == "exit") {
+			running = false;
+			break;
 		}
-	});
+		
+		push_output(process_message(input));
+	}
+}
+
+std::string keilo_server::import_file(std::string file_name, bool ps)
+{
+	selected_database = nullptr;
+	selected_table = nullptr;
+	auto output = m_application->import_file(file_name);
+	if (ps) {
+		push_output(output);
+	}
+	return output;
 }
 
 void keilo_server::process_client(ip::tcp::socket& client)
 {
-	// receive request and send result
 	asio::streambuf read_buffer;
 	asio::read(client, read_buffer);
 
@@ -88,23 +81,25 @@ void keilo_server::process_client(ip::tcp::socket& client)
 	asio::write(client, asio::buffer(process_message(read_data.c_str())));
 }
 
-const std::string keilo_server::process_message(const char * message)
+const std::string keilo_server::process_message(std::string message)
 {
 	std::stringstream result;
 	std::stringstream buffer;
 
-	auto i = 0;
-	while (message[i] == ' ')
+	size_t i = 0;
+	while (message[i] != ' ' && i < message.length())
 		buffer << message[i++];
 	i += 1;
 
-	switch (get_message_type(buffer.str().c_str())) {
+	switch (get_message_type(buffer.str())) {
 	case create:
-		buffer.clear();
-		while (message[i] == ' ')
-			buffer << message[i++];
+	{
+		std::stringstream second_type;
+		while (message[i] != ' ' && i < message.length())
+			second_type << message[i++];
 		i += 1;
-		switch (get_secondary_type(buffer.str().c_str())) {
+
+		switch (get_secondary_type(second_type.str())) {
 		case database:
 			result << create_database(message, i);
 			break;
@@ -114,22 +109,29 @@ const std::string keilo_server::process_message(const char * message)
 		default:
 			result << "Unknown command.";
 		}
+	}
 		break;
 	case select:
-		buffer.clear();
-		while (message[i] == ' ')
-			buffer << message[i++];
+	{
+		std::stringstream second_type;
+		while (message[i] != ' ' && i < message.length())
+			second_type << message[i++];
 		i += 1;
-		switch (get_secondary_type(buffer.str().c_str())) {
+
+		switch (get_secondary_type(second_type.str())) {
 		case database:
 			result << select_database(message, i);
 			break;
 		case table:
 			result << select_table(message, i);
 			break;
+		case record:
+			result << select_record(message, i);
+			break;
 		default:
 			result << "Unknown command.";
 		}
+	}
 		break;
 	case insert:
 		result << insert_record(message, i);
@@ -142,6 +144,12 @@ const std::string keilo_server::process_message(const char * message)
 		break;
 	case drop:
 		result << drop_table(message, i);
+		break;
+	case exp_file:
+		result << export_database(message, i);
+		break;
+	case imp_file:
+		result << import_database(message, i);
 		break;
 	default:
 		result << "Unknown command.";
@@ -166,7 +174,7 @@ void keilo_server::disconnect_client(ip::tcp::socket _client)
 	if (selected_client == m_clients.end())
 		throw std::exception("[disconnect_client] Could not find client.");
 
-	m_outputs.push("[disconnect_client] (" + selected_client->remote_endpoint().address().to_string() + ") disconnected.");
+	push_output(("[disconnect_client] (" + selected_client->remote_endpoint().address().to_string() + ") disconnected.").c_str());
 	selected_client->close();
 	m_clients.erase(selected_client);
 
@@ -178,44 +186,88 @@ void keilo_server::disconnect_client(ip::tcp::socket _client)
 
 void keilo_server::print_output()
 {
-	while (true)
+	while (!running.load());
+	while (running.load()) {
+		m_output_mutex.lock();
 		if (m_outputs.size() > 0) {
 			std::cout << m_outputs.front() << std::endl;
 			m_outputs.pop();
 		}
+		m_output_mutex.unlock();
+	}
 }
 
-int keilo_server::get_message_type(const char * message)
+void keilo_server::accept_client()
+{
+	while (running.load()) {		
+		ip::tcp::socket _client(m_io_service);
+		m_acceptor.accept(_client);
+
+		m_clients.push_back(std::move(_client));
+
+		m_client_processes.push_back(std::thread([&]() {
+			auto found = false;
+			do {
+				process_client(_client);
+				for (const auto& client : m_clients) {
+					if (client.remote_endpoint().address().to_string() == _client.remote_endpoint().address().to_string() &&
+						client.remote_endpoint().port() == _client.remote_endpoint().port())
+					{
+						found = true;
+						break;
+					}
+				}
+			} while (found);
+		}));
+	}
+}
+
+int keilo_server::get_message_type(const std::string message)
 {
 	auto type = 0;
-	if (strcmp("create", message) == 0)
+	if (message == "create")
 		type = create;
-	if (strcmp("select", message) == 0)
+	else if (message == "select")
 		type = select;
-	if (strcmp("insert", message) == 0)
+	else if (message == "insert")
 		type = insert;
-	if (strcmp("update", message) == 0)
+	else if (message == "update")
 		type = update;
-	if (strcmp("remove", message) == 0)
+	else if (message == "remove")
 		type = remove;
-	if (strcmp("drop", message) == 0)
+	else if (message == "drop")
 		type = drop;
+	else if (message == "export")
+		type = exp_file;
+	else if (message == "import")
+		type = imp_file;
 
 	return type;
 }
 
-int keilo_server::get_secondary_type(const char * message)
+int keilo_server::get_secondary_type(const std::string message)
 {
 	auto type = 0;
-	if (strcmp("table", message) == 0)
+	if (message == "table")
 		type = table;
-	if (strcmp("database", message) == 0)
+	else if (message == "database")
 		type = database;
+	else if (message == "record")
+		type = record;
 	return type;
+}
+
+void keilo_server::push_output(const std::string message)
+{
+	m_output_mutex.lock();
+	m_outputs.push(message);
+	m_output_mutex.unlock();
 }
 
 std::string keilo_server::create_database(std::string message, size_t pos)
 {
+	if (pos >= message.length())
+		return "Syntax error";
 	std::stringstream name;
 	while (message[pos] != ';' && pos < message.length())
 		name << message[pos++];
@@ -225,6 +277,9 @@ std::string keilo_server::create_database(std::string message, size_t pos)
 
 std::string keilo_server::select_database(std::string message, size_t pos)
 {
+	if (pos >= message.length())
+		return "Syntax error";
+
 	std::stringstream name;
 	while (message[pos] != ';' && pos < message.length())
 		name << message[pos++];
@@ -235,10 +290,38 @@ std::string keilo_server::select_database(std::string message, size_t pos)
 		return "Database that was named \"" + name.str() + "\" does not exist in server";
 }
 
+std::string keilo_server::export_database(std::string message, size_t pos)
+{
+	if (!selected_database)
+		return "Please select database";
+	if (pos >= message.length())
+		return "Syntax error";
+
+	std::stringstream file_name;
+	while (message[pos] != ';' && pos < message.length())
+		file_name << message[pos++];
+	file_name << ".klo";
+
+	return  m_application->export_database(selected_database->get_name(), file_name.str());
+}
+
+std::string keilo_server::import_database(std::string message, size_t pos)
+{
+	if (pos >= message.length())
+		return "Syntax error";
+
+	std::stringstream file_name;
+	while (message[pos] != ';' && pos < message.length())
+		file_name << message[pos++];
+	return import_file(file_name.str(), false);
+}
+
 std::string keilo_server::create_table(std::string message, size_t pos)
 {
 	if (!selected_database)
 		return "Please select database";
+	if (pos >= message.length())
+		return "Syntax error";
 
 	std::stringstream name;
 	while (message[pos] != ';' && pos < message.length())
@@ -251,6 +334,8 @@ std::string keilo_server::select_table(std::string message, size_t pos)
 {
 	if (!selected_database)
 		return "Please select database";
+	if (pos >= message.length())
+		return "Syntax error";
 
 	std::stringstream name;
 	while (message[pos] != ';' && pos < message.length())
@@ -260,21 +345,55 @@ std::string keilo_server::select_table(std::string message, size_t pos)
 		return "Successfully selected table that was named \"" + name.str() + "\".";
 	else
 		return "Table that was named \"" + name.str() + "\" does not exist in database \"" + selected_database->get_name() + "\".";
-
 }
 
 std::string keilo_server::drop_table(std::string message, size_t pos)
 {
+	if (pos >= message.length())
+		return "Syntax error";
+
 	std::stringstream name;
-	while (message[pos] != ';')
+	while (message[pos] != ';' && pos < message.length())
 		name << message[pos++];
 
 	return selected_database->drop_table(name.str());
 }
 
+std::string keilo_server::select_record(std::string message, size_t pos)
+{
+	if (!selected_table)
+		return "Please select table.";
+	if (pos >= message.length())
+		return "Syntax error";
+
+	std::stringstream identifier;
+	while (message[pos] != ':' && pos < message.length())
+		identifier << message[pos++];
+	pos += 1;
+	std::stringstream value;
+	while (message[pos] != ';' && pos < message.length())
+		value << message[pos++];
+
+	auto record = selected_table->select_record(keilo_instance{ identifier.str(), value.str() });
+	std::stringstream selected_record;
+
+	if (record.size() > 0) {
+		selected_record << "(" << std::endl;
+		for (const auto& instance : record)
+			selected_record << instance.first << ":" << instance.second << ";" << std::endl;
+		selected_record << ")" << std::endl;
+	}
+	else
+		selected_record << "There is no record that has " << value.str() << " as " << identifier.str() << "in table " << selected_table->get_name() << "." << std::endl;
+
+	return selected_record.str();
+}
+
 std::string keilo_server::insert_record(std::string message, size_t pos)
 {
-	while (message[pos - 1 != '('])
+	// 수정 필요
+	/*
+	while (message[pos - 1] != '(')
 		pos++;
 
 	keilo_record record;
@@ -289,6 +408,27 @@ std::string keilo_server::insert_record(std::string message, size_t pos)
 				value << message[pos++];
 			record.push_back(keilo_instance{ identifier.str(), value.str() });
 		}
+	}*/
+
+	if (!selected_table)
+		return "Please select table";
+
+	keilo_record record;
+
+	while (pos < message.length()) {
+		std::stringstream identifier;
+		while (message[pos] != ':' && pos < message.length())
+			identifier << message[pos++];
+		pos += 1;
+
+		std::stringstream value;
+		while ((message[pos] != ',' && message[pos] != ';') && pos < message.length())
+			value << message[pos++];
+
+		record.push_back(keilo_instance{ identifier.str(), value.str() });
+		 
+		while (message[pos - 1] != ' ' && message[pos - 1] != ','  && message[pos - 1] != ';' && pos < message.length())
+			pos++;
 	}
 
 	return selected_table->insert(record);
@@ -296,33 +436,47 @@ std::string keilo_server::insert_record(std::string message, size_t pos)
 
 std::string keilo_server::update_record(std::string message, size_t pos)
 {
+	if (!selected_table)
+		return "Please select table";
+	if (pos >= message.length())
+		return "Syntax error";
+
 	std::stringstream condition_identifier;
-	while (message[pos] != ':')
+	while (message[pos] != ':' && pos < message.length())
 		condition_identifier << message[pos++];
+	pos += 1;
 
 	std::stringstream condition_value;
-	while (message[pos] != ' ')
+	while (message[pos] != ' '&& pos < message.length())
 		condition_value << message[pos++];
+	pos += 1;
 
 	std::stringstream new_identifier;
-	while (message[pos] != ':')
+	while (message[pos] != ':'&& pos < message.length())
 		new_identifier << message[pos++];
+	pos += 1;
 
 	std::stringstream new_value;
-	while (message[pos] != ';')
+	while (message[pos] != ';'&& pos < message.length())
 		new_value << message[pos++];
+	pos += 1;
 
 	return selected_table->update(keilo_instance{ condition_identifier.str(), condition_value.str() }, keilo_instance{ new_identifier.str(), new_value.str() });
 }
 
 std::string keilo_server::remove_record(std::string message, size_t pos)
 {
-	std::stringstream identifier;
-	while (message[pos] != ':')
-		identifier << message[pos++];
+	if (!selected_table)
+		return "Please select table";
+	if (pos >= message.length())
+		return "Syntax error";
 
+	std::stringstream identifier;
+	while (message[pos] != ':' && pos < message.length())
+		identifier << message[pos++];
+	pos += 1;
 	std::stringstream value;
-	while (message[pos] != ';')
+	while (message[pos] != ';' && pos < message.length())
 		value << message[pos++];
 
 	return selected_table->remove(keilo_instance{ identifier.str(), value.str() });

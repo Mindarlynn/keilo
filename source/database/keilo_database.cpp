@@ -68,7 +68,7 @@ keilo_table* keilo_database::select_table(std::string _name)
 std::string keilo_database::drop_table(std::string _name)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
-	std::list<keilo_table>::iterator it;
+	auto it = m_tables.end();
 
 	for (auto table = m_tables.begin(); table != m_tables.end(); ++table) 
 	{

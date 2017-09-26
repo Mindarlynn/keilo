@@ -50,6 +50,7 @@ std::string keilo_application::import_file(std::string file_name)
 	file_path << boost::filesystem::current_path().generic_string() << "/database/" << file_name;
 
 	if (std::ifstream file(file_path.str()); file) {
+		m_databases.clear();
 		m_mutex.lock();
 		m_databases.push_back(keilo_database(file));
 		m_mutex.unlock();
