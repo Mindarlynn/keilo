@@ -7,8 +7,9 @@
 #include <atomic>
 #include <mutex>
 #include <queue>
-#include <queue>
-#include <winsock2.h>
+
+#include <boost/asio.hpp>
+
 
 class keilo_server
 {
@@ -28,25 +29,24 @@ public:
 	};
 
 public:
-	keilo_server();
 	keilo_server(int port);
 	~keilo_server();
 
 public:
-	void run(int port);
+	void run();
 
 	void import_file(std::string file_name);
 
 private:
 	void initialize();
-	void process_client(std::pair<SOCKET, sockaddr_in> client);
+	void process_client(boost::asio::ip::tcp::socket& client);
 
-	std::string process_message(const char* message);
+	const std::string process_message(const char* message);
 
 	int get_message_type(const char* message);
 	int get_secondary_type(const char* message);
 
-	void disconnect_client(SOCKET client);
+	void disconnect_client(boost::asio::ip::tcp::socket client);
 
 private:
 	void print_output();
@@ -73,17 +73,21 @@ private:
 	keilo_database* selected_database = nullptr;
 	keilo_table* selected_table = nullptr;
 
+
+	//socket
 private:
-	SOCKET m_socket;
-	WSADATA m_wsadata;
+	boost::asio::io_service m_io_service;
+	boost::asio::ip::tcp::acceptor m_acceptor;
+	
 	int m_port;
 
+private:
 	std::atomic<bool> running;
 
 	std::queue<std::string> m_outputs;
 
 	std::unique_ptr<keilo_application> m_application;
-	std::list<std::pair<SOCKET, sockaddr_in>> m_clients;
+	std::list<boost::asio::ip::tcp::socket> m_clients;
 	std::list<std::thread> m_client_processes;
 
 private:

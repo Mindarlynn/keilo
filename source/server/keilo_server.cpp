@@ -1,20 +1,20 @@
 #include "keilo_server.hpp"
 
-#include <winsock2.h>
 #include <utility>
 #include <thread>
 #include <iostream>
 #include <sstream>
-#include <WS2tcpip.h>
+#include <string>
 
-#pragma comment(lib, "ws2_32.lib")
+#include <boost/asio.hpp>
 
-keilo_server::keilo_server() : m_application(new keilo_application()), m_clients(std::list<std::pair<SOCKET, sockaddr_in>>()), m_client_processes(std::list<std::thread>())
-{
-	print_thread = std::thread(&keilo_server::print_output, this);
-}
 
-keilo_server::keilo_server(int port) : m_application(new keilo_application()), m_clients(std::list<std::pair<SOCKET, sockaddr_in>>()), m_client_processes(std::list<std::thread>()), m_port(port)
+namespace asio = boost::asio;
+namespace ip = asio::ip;
+
+
+
+keilo_server::keilo_server(int port) : m_application(new keilo_application()), m_clients(std::list < ip::tcp::socket > ()), m_client_processes(std::list<std::thread>()), m_port(port), m_acceptor(m_io_service, ip::tcp::endpoint(ip::address::from_string("127.0.0.1"), m_port)), print_thread(std::thread(&keilo_server::print_output, this))
 {
 }
 
@@ -27,14 +27,13 @@ keilo_server::~keilo_server()
 	if (accept_thread)
 		delete accept_thread;
 	for (auto& client : m_clients) {
-		closesocket(client.first);
+		client.close();
 	}
-	closesocket(m_socket);
+	
 }
 
-void keilo_server::run(int port)
+void keilo_server::run()
 {
-	this->m_port = port;
 	initialize();
 }
 
@@ -45,45 +44,30 @@ void keilo_server::import_file(std::string file_name)
 
 void keilo_server::initialize()
 {
-	sockaddr_in server_address;
-
-	if (WSAStartup(MAKEWORD(2, 2), &m_wsadata))
-		throw std::exception("WSAStartup error");
-
-	m_socket = socket(PF_INET, SOCK_STREAM, 0);
-	if (m_socket == INVALID_SOCKET)
-		throw std::exception("socket error");
-
-	ZeroMemory(&server_address, sizeof server_address);
-	server_address.sin_family = AF_INET;
-	server_address.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
-	server_address.sin_port = htons(m_port);
-
-	if (bind(m_socket, (SOCKADDR*)&server_address, sizeof server_address) == SOCKET_ERROR)
-		throw std::exception("bind error");
-
-	if (listen(m_socket, 5) == SOCKET_ERROR)
-		throw std::exception("listen error");
-
 	running = true;
+
+	m_acceptor.listen(5);
 
 	accept_thread = new std::thread([&]() {
 		while (running.load()) {
-			SOCKET client_socket;
-			sockaddr_in client_address;
-			int size_of_client_address = sizeof client_address;
-			client_socket = accept(m_socket, (SOCKADDR*)&client_address, &size_of_client_address);
-			if (client_socket == INVALID_SOCKET)
-				throw std::exception("accept error");
-			std::pair<SOCKET, sockaddr_in> client{ client_socket, client_address };
-			m_clients.push_back(client);
+			
+			// accept client
+
+			ip::tcp::socket _client(m_io_service);
+			m_acceptor.accept(_client);
+
+			m_clients.push_back(std::move(_client));
+
 			m_client_processes.push_back(std::thread([&]() {
 				bool found = false;
 				do {
-					process_client(client);
-					for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
-						if (it->first == client.first) {
+					process_client(_client);
+					for (const auto& client : m_clients) {
+						if (client.remote_endpoint().address().to_string() == _client.remote_endpoint().address().to_string() &&
+							client.remote_endpoint().port() == _client.remote_endpoint().port())
+						{
 							found = true;
+							break;
 						}
 					}
 				} while (found);
@@ -92,22 +76,19 @@ void keilo_server::initialize()
 	});
 }
 
-void keilo_server::process_client(std::pair<SOCKET, sockaddr_in> client)
+void keilo_server::process_client(ip::tcp::socket& client)
 {
-	send(client.first, "", 0, 0);
-	char buffer[1024];
-	int buffer_byte;
-	while ((buffer_byte = recv(client.first, buffer, 1024, 0)) > 0) {
-		buffer[buffer_byte] = 0;
-		std::stringstream a;
-		a << "[client_process] : " << buffer;
-		m_outputs.push(a.str());
-		auto result = process_message(buffer);
-		send(client.first, result.c_str(), result.length(), 0);
-	}
+	// receive request and send result
+	asio::streambuf read_buffer;
+	asio::read(client, read_buffer);
+
+	std::string read_data = asio::buffer_cast<const char*>(read_buffer.data());
+	read_data.erase(--read_data.end());
+
+	asio::write(client, asio::buffer(process_message(read_data.c_str())));
 }
 
-std::string keilo_server::process_message(const char * message)
+const std::string keilo_server::process_message(const char * message)
 {
 	std::stringstream result;
 	std::stringstream buffer;
@@ -169,15 +150,15 @@ std::string keilo_server::process_message(const char * message)
 	return result.str();
 }
 
-void keilo_server::disconnect_client(SOCKET _client)
+void keilo_server::disconnect_client(ip::tcp::socket _client)
 {
 	auto selected_client = m_clients.end();
-	char host[15] = { 0, };
 
 	for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
-		if (it->first == _client) {
+		if (it->remote_endpoint().address().to_string() == _client.remote_endpoint().address().to_string() && 
+			it->remote_endpoint().port() == _client.remote_endpoint().port()) 
+		{
 			selected_client = it;
-			inet_ntop(PF_INET, &it->second, host, 15);
 			break;
 		}
 	}
@@ -185,8 +166,8 @@ void keilo_server::disconnect_client(SOCKET _client)
 	if (selected_client == m_clients.end())
 		throw std::exception("[disconnect_client] Could not find client.");
 
-	closesocket(selected_client->first);
-	std::cout << "[disconnect_client] " << " (" << host << ") disconnected." << std::endl;
+	m_outputs.push("[disconnect_client] (" + selected_client->remote_endpoint().address().to_string() + ") disconnected.");
+	selected_client->close();
 	m_clients.erase(selected_client);
 
 	for (auto& process : m_client_processes) {
