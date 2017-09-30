@@ -259,41 +259,6 @@ void keilo_server::accept_client()
 	}
 }
 
-int keilo_server::get_message_type(const std::string message)
-{
-	auto type = 0;
-	if (message == "create")
-		type = create;
-	else if (message == "select")
-		type = select;
-	else if (message == "insert")
-		type = insert;
-	else if (message == "update")
-		type = update;
-	else if (message == "remove")
-		type = remove;
-	else if (message == "drop")
-		type = drop;
-	else if (message == "export")
-		type = exp_file;
-	else if (message == "import")
-		type = imp_file;
-
-	return type;
-}
-
-int keilo_server::get_secondary_type(const std::string message)
-{
-	auto type = 0;
-	if (message == "table")
-		type = table;
-	else if (message == "database")
-		type = database;
-	else if (message == "record")
-		type = record;
-	return type;
-}
-
 void keilo_server::push_output(const std::string message)
 {
 	m_output_mutex.lock();
