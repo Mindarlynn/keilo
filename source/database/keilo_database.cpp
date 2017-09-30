@@ -26,12 +26,10 @@ std::string keilo_database::create_table(std::string _name)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 
-	for (const auto& table : m_tables) {
+	for (const auto& table : m_tables) 
 		if (table.get_name() == _name)
 			return "Table that was named \"" + _name + "\" already exist in database.";
-		//throw std::exception(("Table \"" + _name + "\" already exist in database.").c_str());
-	}
-
+	
 	m_tables.push_back(keilo_table(_name));
 	return "Successfully create table that was named \"" + _name + "\".";
 }
@@ -81,7 +79,6 @@ std::string keilo_database::drop_table(std::string _name)
 
 	if (it == m_tables.end())
 		return "Table that was named \"" + _name + "\" dose not exist in database \"" + get_name() + "\".";
-		//throw std::exception(("Table \"" + _name + "\" dose not exist in database \"" + get_name() + "\".").c_str());
 
 	m_tables.erase(it);
 	return "Successfully droped table that was named \"" + _name + "\".";
