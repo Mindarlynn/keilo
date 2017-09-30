@@ -14,6 +14,46 @@ keilo_table::keilo_table(const keilo_table & _other) : m_name(_other.m_name), m_
 {
 }
 
+keilo_table keilo_table::join(keilo_table* _other)
+{
+	std::list<keilo_record> joined_table{ get_records() };
+	auto other_table = _other->get_records();
+
+	for (auto& i_record : joined_table)
+	{
+		keilo_instance i_instance;
+
+		for (const auto& instance : i_record)
+		{
+			if (instance.first != "index")
+				continue;
+
+			i_instance = instance;
+			break;
+		}
+
+		bool found = false;
+
+		for (auto& j_record : other_table)
+		{
+			for (const auto& j_instance : j_record)
+			{
+				if (j_instance.first == "index")
+				{
+					if (i_instance.second != j_instance.second)
+						break;
+
+					found = true;
+				}
+				else
+					i_record.push_back(keilo_instance{ j_instance.first, j_instance.second });
+			}
+			if (found)
+				break;
+		}
+	}
+	return keilo_table(get_name() + "+" + _other->get_name(), joined_table);
+}
 
 keilo_record keilo_table::select_record(keilo_instance _instance)
 {
@@ -33,48 +73,7 @@ keilo_record keilo_table::select_record(keilo_instance _instance)
 	//throw std::exception(("Could not find record that has identifier \"" + _instance.first +"\" or value\"" + _instance.second + "\".").c_str());
 }
 
-keilo_table keilo_table::join(keilo_table* _other)
-{
-	std::list<keilo_record> joined_table{ get_records() };
-	auto other_table = _other->get_records();
-
-	for (auto& i_record : joined_table) 
-	{
-		keilo_instance i_instance;
-
-		for (const auto& instance : i_record) 
-		{
-			if (instance.first != "index") 
-				continue;
-
-			i_instance = instance;
-			break;
-		}
-
-		bool found = false;
-
-		for (auto& j_record : other_table) 
-		{
-			for (const auto& j_instance : j_record) 
-			{
-				if (j_instance.first == "index") 
-				{
-					if (i_instance.second != j_instance.second) 
-						break;
-
-					found = true;
-				}
-				else 
-					i_record.push_back(keilo_instance{ j_instance.first, j_instance.second });
-			}
-			if (found) 
-				break;
-		}
-	}
-	return keilo_table(get_name() + "+" + _other->get_name(), joined_table);
-}
-
-std::string keilo_table::insert(keilo_record & _record)
+std::string keilo_table::insert_record(keilo_record & _record)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 	int pos;
@@ -86,16 +85,12 @@ std::string keilo_table::insert(keilo_record & _record)
 			continue;
 
 		for (const auto& j_record : m_records) 
-		{
 			for (const auto& j_instance : j_record) 
-			{
 				if (i_instance != j_instance)
 					continue;
-
+				else
 				return "Record that has index \"" + i_instance.second + "\" is already exist in table \"" + get_name() + "\".";
-				//throw std::exception(("Element that has index \"" + i_instance.second + "\" is already exist in table \"" + get_name() + "\".").c_str());
-			}
-		}
+		
 		index = i_instance.second;
 		pos = atoi(index.c_str());
 		break;
@@ -111,7 +106,7 @@ std::string keilo_table::insert(keilo_record & _record)
 	return "Successfully inserted record that has index\"" + index + "\" to table \"" + get_name() + "\".";
 }
 
-std::string keilo_table::update(keilo_instance _where, keilo_instance _new)
+std::string keilo_table::update_record(keilo_instance _where, keilo_instance _new)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 
@@ -153,7 +148,7 @@ std::string keilo_table::update(keilo_instance _where, keilo_instance _new)
 	return  "Successfully updated record that has " + _where.first + " \"" + _where.second +"\" in table \"" + get_name() + "\".";
 }
 
-std::string keilo_table::remove(keilo_instance _instance)
+std::string keilo_table::remove_record(keilo_instance _instance)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
 	

@@ -15,11 +15,12 @@ public:
 	keilo_table(const keilo_table& _other);
 
 public:
-	keilo_record select_record(keilo_instance _instance);
 	keilo_table join(keilo_table* _other);
-	std::string insert(keilo_record& _record);
-	std::string update(keilo_instance _destination, keilo_instance _source);
-	std::string remove(keilo_instance _instance);
+
+	keilo_record select_record(keilo_instance _instance);
+	std::string insert_record(keilo_record& _record);
+	std::string update_record(keilo_instance _destination, keilo_instance _source);
+	std::string remove_record(keilo_instance _instance);
 
 public:
 	std::list<keilo_record> get_records();
