@@ -70,6 +70,29 @@ std::string keilo_server::import_file(std::string file_name, bool ps)
 	return output;
 }
 
+void keilo_server::print_output()
+{
+	while (!running.load());
+	while (running.load()) {
+		m_output_mutex.lock();
+		while (m_outputs.size() > 0) {
+			printing = true;
+			std::cout << m_outputs.front() << std::endl;
+			m_outputs.pop();
+		}
+		m_output_mutex.unlock();
+		if (printing.load())
+			printing = false;
+	}
+}
+
+void keilo_server::push_output(const std::string message)
+{
+	m_output_mutex.lock();
+	m_outputs.push(message);
+	m_output_mutex.unlock();
+}
+
 void keilo_server::process_client(ip::tcp::socket& client)
 {
 	asio::streambuf read_buffer;
