@@ -144,77 +144,53 @@ void keilo_server::process_client(ip::tcp::socket& client)
 
 const std::string keilo_server::process_message(std::string message)
 {
+	
 	std::stringstream result;
-	std::stringstream buffer;
 
-	size_t i = 0;
-	while (message[i] != ' ' && i < message.length())
-		buffer << message[i++];
-	i += 1;
-
-	switch (get_message_type(buffer.str())) {
-	case create:
-	{
-		std::stringstream second_type;
-		while (message[i] != ' ' && i < message.length())
-			second_type << message[i++];
-		i += 1;
-
-		switch (get_secondary_type(second_type.str())) {
-		case database:
-			result << create_database(message, i);
-			break;
-		case table:
-			result << create_table(message, i);
-			break;
-		default:
+	if (message.find(CREATE) != std::string::npos) {
+		if (auto pos = message.find(DATABASE); pos != std::string::npos)
+			result << create_database(message, pos + DATABASE.length());
+		else if (auto pos = message.find(TABLE); pos != std::string::npos)
+			result << create_table(message, pos + TABLE.length());
+		else
 			result << "Unknown command.";
-		}
-	}
-		break;
-	case select:
-	{
-		std::stringstream second_type;
-		while (message[i] != ' ' && i < message.length())
-			second_type << message[i++];
-		i += 1;
-
-		switch (get_secondary_type(second_type.str())) {
-		case database:
-			result << select_database(message, i);
-			break;
-		case table:
-			result << select_table(message, i);
-			break;
-		case record:
-			result << select_record(message, i);
-			break;
-		default:
+	}	
+	else if (message.find(SELECT) != std::string::npos) {
+		if (auto pos = message.find(DATABASE); pos != std::string::npos)
+			result << select_database(message, pos + DATABASE.length());
+		else if (auto pos = message.find(TABLE); pos != std::string::npos)
+			result << select_table(message, pos + TABLE.length());
+		else if (auto pos = message.find(RECORD); pos != std::string::npos)
+			result << select_record(message, pos + RECORD.length());
+		else
 			result << "Unknown command.";
-		}
 	}
-		break;
-	case insert:
-		result << insert_record(message, i);
-		break;
-	case update:
-		result << update_record(message, i);
-		break;
-	case remove:
-		result << remove_record(message, i);
-		break;
-	case drop:
-		result << drop_table(message, i);
-		break;
-	case exp_file:
-		result << export_database(message, i);
-		break;
-	case imp_file:
-		result << import_database(message, i);
-		break;
-	default:
+	else if (auto pos = message.find(JOIN); pos != std::string::npos) {
+		result << join_table(message, pos + JOIN.length());
+	}
+	else if (auto pos = message.find(INSERT); pos != std::string::npos) {
+		result << insert_record(message, pos + INSERT.length());
+	}
+	else if (auto pos = message.find(UPDATE); pos != std::string::npos) {
+		result << update_record(message, pos + UPDATE.length());
+	}
+	else if (auto pos = message.find(REMOVE); pos != std::string::npos) {
+		result << remove_record(message, pos + REMOVE.length());
+	}
+	else if (auto pos = message.find(DROP); pos != std::string::npos) {
+		result << drop_table(message, pos + DROP.length());
+	}
+	else if (auto pos = message.find(IMPORT_FILE); pos != std::string::npos) {
+		result << import_database(message, pos + IMPORT_FILE.length());
+	}
+	else if (auto pos = message.find(EXPORT_FILE); pos != std::string::npos) {
+		result << export_database(message, pos + EXPORT_FILE.length());
+	}
+	else if (auto pos = message.find(CLEAR); pos != std::string::npos) {
+		system("cls");
+	}
+	else
 		result << "Unknown command.";
-	}
 
 	return result.str();
 }
