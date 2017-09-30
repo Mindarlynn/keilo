@@ -106,6 +106,31 @@ void keilo_server::push_output(const std::string message)
 	m_output_mutex.unlock();
 }
 
+void keilo_server::accept_client()
+{
+	while (running.load()) {
+		ip::tcp::socket _client(m_io_service);
+		m_acceptor.accept(_client);
+
+		m_clients.push_back(std::move(_client));
+
+		m_client_processes.push_back(std::thread([&]() {
+			auto found = false;
+			do {
+				process_client(_client);
+				for (const auto& client : m_clients) {
+					if (client.remote_endpoint().address().to_string() == _client.remote_endpoint().address().to_string() &&
+						client.remote_endpoint().port() == _client.remote_endpoint().port())
+					{
+						found = true;
+						break;
+					}
+				}
+			} while (found);
+		}));
+	}
+}
+
 void keilo_server::process_client(ip::tcp::socket& client)
 {
 	asio::streambuf read_buffer;
