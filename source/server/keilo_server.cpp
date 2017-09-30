@@ -50,6 +50,19 @@ void keilo_server::run_local()
 	running = true;
 	std::string input;
 	while (running.load()) {
+		while (printing.load());
+		std::stringstream select_status;
+		if (selected_database) {
+			select_status << "[" << selected_database->get_name();
+			if (selected_table)
+				select_status << "_" << selected_table->get_name();
+			select_status << "]> ";
+		}
+		else
+			select_status << "[none]> ";
+
+		std::cout << select_status.str();
+
 		if (std::getline(std::cin, input); input == "exit") {
 			running = false;
 			break;
