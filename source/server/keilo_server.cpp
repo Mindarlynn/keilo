@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 #include <exception>
+#include <cstdlib>
 
 #include <boost/asio.hpp>
 
