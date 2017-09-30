@@ -221,51 +221,6 @@ void keilo_server::disconnect_client(ip::tcp::socket _client)
 	}
 }
 
-void keilo_server::print_output()
-{
-	while (!running.load());
-	while (running.load()) {
-		m_output_mutex.lock();
-		if (m_outputs.size() > 0) {
-			std::cout << m_outputs.front() << std::endl;
-			m_outputs.pop();
-		}
-		m_output_mutex.unlock();
-	}
-}
-
-void keilo_server::accept_client()
-{
-	while (running.load()) {		
-		ip::tcp::socket _client(m_io_service);
-		m_acceptor.accept(_client);
-
-		m_clients.push_back(std::move(_client));
-
-		m_client_processes.push_back(std::thread([&]() {
-			auto found = false;
-			do {
-				process_client(_client);
-				for (const auto& client : m_clients) {
-					if (client.remote_endpoint().address().to_string() == _client.remote_endpoint().address().to_string() &&
-						client.remote_endpoint().port() == _client.remote_endpoint().port())
-					{
-						found = true;
-						break;
-					}
-				}
-			} while (found);
-		}));
-	}
-}
-
-void keilo_server::push_output(const std::string message)
-{
-	m_output_mutex.lock();
-	m_outputs.push(message);
-	m_output_mutex.unlock();
-}
-
 std::string keilo_server::create_database(std::string message, size_t pos)
 {
 	if (pos >= message.length())
