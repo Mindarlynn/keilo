@@ -15,13 +15,13 @@ table : create table [table name];<br/>
 database : select database [database name];<br/>
 table : select table [table name];<br/>
 record : select record [identifier]:[value] or all;<br/>
-### join (while table selected)
+### join (table)
 join [(other database name_)other table name]
-### insert
+### insert (record)
 insert [identifier]:[value], ..., [identifier]:[value];
-### update
+### update (record)
 update (where)[identifier]:[value] (new)[identifier]:[value];
-### remove
+### remove (record)
 remove [identifier]:[value];
 ### export file
 export [file name];
