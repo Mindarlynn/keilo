@@ -13,29 +13,11 @@
 
 class keilo_server
 {
-private:
-	enum : int{
-		create = 1,
-		select,
-		insert,
-		update,
-		remove,
-		drop,
-		exp_file,
-		imp_file
-	};
-
-	enum : int {
-		database = 1,
-		table,
-		record
-	};
-
 public:
 	keilo_server(int port);
 	~keilo_server();
 
-public:
+public:  // user accessable functions
 	void run();
 	void run_local();
 
@@ -51,19 +33,14 @@ private:
 
 	void disconnect_client(boost::asio::ip::tcp::socket client);
 
-private:
 	void print_output();
 	void accept_client();
 
-private:
 	std::thread accept_thread;
 	std::thread print_thread;
 
-private:
 	void push_output(const std::string message);
 
-private:
-	// application
 	std::string create_database(std::string message, size_t pos);
 	std::string select_database(std::string message, size_t pos);
 	std::string export_database(std::string message, size_t pos);
@@ -80,19 +57,16 @@ private:
 	std::string update_record(std::string message, size_t pos);
 	std::string remove_record(std::string message, size_t pos);
 
-private:
 	keilo_database* selected_database = nullptr;
 	keilo_table* selected_table = nullptr;
 
 
-	//socket
 private:
 	boost::asio::io_service m_io_service;
 	boost::asio::ip::tcp::acceptor m_acceptor;
 	
 	int m_port;
 
-private:
 
 	std::atomic<bool> running = false;
 
