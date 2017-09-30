@@ -42,7 +42,7 @@ keilo_server::~keilo_server()
 void keilo_server::run()
 {
 	m_acceptor.listen(5);
-	running = true;
+	run_local();
 }
 
 void keilo_server::run_local()
