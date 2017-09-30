@@ -7,9 +7,31 @@ Tested platform : Windows10 ver 1703(build 15063.608), msvc 14.1
 ### 1. import codes directly to project
 ### 2. compile codes to static library file.
 
+## commands
+### create
+database : create database [database name];<br/>
+table : create table [table name];<br/>
+### select
+database : select database [database name];<br/>
+table : select table [table name];<br/>
+record : select record [identifier]:[value] or all;<br/>
+### join (while table selected)
+join [(other database name_)other table name]
+### insert
+insert [identifier]:[value], ..., [identifier]:[value];
+### update
+update (where)[identifier]:[value] (new)[identifier]:[value];
+### remove
+remove [identifier]:[value];
+### export file
+export [file name];
+### import file
+import [file name];
+### clear console
+clear;
+
 ## data file
 keilo database use <b><i>*.klo</i></b> as an extension.
-
 ### element
 - name[] : database
 - name{} : table
