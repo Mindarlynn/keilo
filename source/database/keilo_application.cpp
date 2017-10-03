@@ -1,8 +1,7 @@
 #include "keilo_application.hpp"
 #include "keilo_database.hpp"
 
-#include <boost/filesystem.hpp>
-
+#include <experimental/filesystem>
 #include <sstream>
 #include <fstream>
 #include <mutex>
@@ -47,7 +46,7 @@ std::string keilo_application::import_file(std::string file_name)
 
 	std::stringstream file_path;
 
-	file_path << boost::filesystem::current_path().generic_string() << "/database/" << file_name;
+	file_path << std::experimental::filesystem::current_path().generic_string() << "/database/" << file_name;
 
 	if (std::ifstream file(file_path.str()); file) {
 		m_databases.clear();
@@ -67,7 +66,7 @@ std::string keilo_application::export_database(std::string database_name, std::s
 	try {
 		std::stringstream file_path;
 
-		file_path << boost::filesystem::current_path().generic_string() << "/database/" << file_name;
+		file_path << std::experimental::filesystem::current_path().generic_string() << "/database/" << file_name;
 
 		std::ofstream file(file_path.str());
 
