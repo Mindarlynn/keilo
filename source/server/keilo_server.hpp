@@ -13,6 +13,7 @@
 class keilo_server
 {
 public:
+	
 	keilo_server(int port);
 	~keilo_server();
 
@@ -33,9 +34,9 @@ private: // outupt
 
 private: // networking
 	void accept_client();
-	void process_client(boost::asio::ip::tcp::socket& client);
-	const std::string process_message(std::string message);
-	void disconnect_client(boost::asio::ip::tcp::socket client);
+	void process_client(client& _client, keilo_database* database, keilo_table* table);
+	const std::string process_message(std::string message, keilo_database* database, keilo_table* table);
+	void disconnect_client(client& _client);
 
 	std::thread accept_thread;
 	int m_port;
@@ -48,19 +49,19 @@ private: // networking
 
 private: // database processing
 	std::string create_database(std::string message, size_t pos);
-	std::string select_database(std::string message, size_t pos);
-	std::string export_database(std::string message, size_t pos);
+	std::string select_database(std::string message, size_t pos, keilo_database* database);
+	std::string export_database(std::string message, size_t pos, keilo_database* database);
 	std::string import_database(std::string message, size_t pos);
 
-	std::string create_table(std::string message, size_t pos);
-	std::string select_table(std::string message, size_t pos);
-	std::string join_table(std::string message, size_t pos);
-	std::string drop_table(std::string message, size_t pos);
+	std::string create_table(std::string message, size_t pos, keilo_database* database);
+	std::string select_table(std::string message, size_t pos, keilo_database* database, keilo_table* table);
+	std::string join_table(std::string message, size_t pos, keilo_database* database, keilo_table* table);
+	std::string drop_table(std::string message, size_t pos, keilo_database* database, keilo_table* table);
 
-	std::string select_record(std::string message, size_t pos);
-	std::string insert_record(std::string message, size_t pos);
-	std::string update_record(std::string message, size_t pos);
-	std::string remove_record(std::string message, size_t pos);
+	std::string select_record(std::string message, size_t pos, keilo_table* table);
+	std::string insert_record(std::string message, size_t pos, keilo_table* table);
+	std::string update_record(std::string message, size_t pos, keilo_table* table);
+	std::string remove_record(std::string message, size_t pos, keilo_table* table);
 
 private: // commands
 	const std::string CREATE = "create";
