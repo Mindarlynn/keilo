@@ -1,14 +1,13 @@
 #pragma once
 
 #include "keilo_application.hpp"
+#include "keilo_core.hpp"
 
 #include <memory>
 #include <list>
 #include <atomic>
 #include <mutex>
 #include <queue>
-
-#include <boost/asio.hpp>
 
 
 class keilo_server
@@ -39,10 +38,11 @@ private: // networking
 	void disconnect_client(boost::asio::ip::tcp::socket client);
 
 	std::thread accept_thread;
-	boost::asio::io_service m_io_service;
 	int m_port;
-	boost::asio::ip::tcp::acceptor m_acceptor;
-	std::list<boost::asio::ip::tcp::socket> m_clients;
+	std::list<client> m_clients;
+	SOCKET m_socket;
+	WSADATA m_wsa;
+	SOCKADDR_IN m_addr;
 	std::list<std::thread> m_client_processes;
 
 
@@ -81,6 +81,4 @@ private:
 	std::atomic<bool> running = false;
 
 	std::unique_ptr<keilo_application> m_application;
-	keilo_database* selected_database = nullptr;
-	keilo_table* selected_table = nullptr;
 };
