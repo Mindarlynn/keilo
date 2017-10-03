@@ -149,6 +149,7 @@ void keilo_server::accept_client()
 			auto client_addr = _client.addr;
 			keilo_database* selected_database = nullptr;
 			keilo_table* selected_table = nullptr;
+
 			while (running.load()) {
 				auto found = m_clients.end();
 				for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
@@ -176,15 +177,15 @@ void keilo_server::process_client(client& _client, keilo_database** database, ke
 		disconnect_client(_client);
 		return;
 	}
-	//asio::read(*client, asio::buffer(read_data, 255));
 
 	read_data[received] = 0;
+
 	std::string addr = inet_ntoa(_client.addr.sin_addr);
 	push_output("[" + addr + ":" + std::to_string(_client.addr.sin_port) + "] " + std::string(read_data));
+	
 	auto processed_message = process_message(read_data, database, table);
 	if (send(_client.sock, processed_message.c_str(), processed_message.length(), 0) == SOCKET_ERROR)
 		throw std::exception(std::to_string(WSAGetLastError()).c_str());
-	//asio::write(*client, asio::buffer(process_message(std::string(read_data))));
 }
 
 const std::string keilo_server::process_message(std::string message, keilo_database** database, keilo_table** table)
@@ -246,14 +247,6 @@ void keilo_server::disconnect_client(client& _client)
 	auto selected_client = m_clients.end();
 
 	for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
-		/*
-		if (it->remote_endpoint().address().to_string() == _client.remote_endpoint().address().to_string() && 
-			it->remote_endpoint().port() == _client.remote_endpoint().port()) 
-		{
-			selected_client = it;
-			break;
-		}
-		*/
 		if (it->addr.sin_addr.S_un.S_addr == _client.addr.sin_addr.S_un.S_addr &&
 			it->addr.sin_port == _client.addr.sin_port) 
 		{
