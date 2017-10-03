@@ -52,6 +52,9 @@ keilo_server::~keilo_server()
 	}
 	if (print_thread.joinable())
 		print_thread.join();
+	for (auto& processes : m_client_processes)
+		if (processes.joinable())
+			processes.join();
 	for (auto& client : m_clients)
 		closesocket(client.sock);
 	closesocket(m_socket);
