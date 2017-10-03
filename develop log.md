@@ -17,3 +17,12 @@ client의 소켓이 disconnect되어 그런 것으로 추정. Disconnect의 이�
 <br/><br/>
 에러:<br/>
 boost asio socket에 대한 이해도 부족으로 인해 test client에서 connect 불가 exception이 throw됨.<br/>
+
+## 2017_10_03
+문제해결:<br/>
+boost소켓 연결 후 read하는 부분에서 알수없는 exception이 발생해 boost에서 다시 winsock으로 변경.<br/>
+프로젝트에서 boost 라이브러리 사용을 중지함.<br/>
+현재 1대N 통신가능. 커맨드 테스트 완료.<br/>
+<br/><br/>
+에러:<br/>
+클라이언트의 세션 독립성을 위해 클라이언트별로 database와 table 변수를 가지게 하였음. 함수에서 변수에 대입을 하는 부분까지 제대로 동작하지만 함수를 탈출하면 변수에 기존의 데이터가 아닌 nullptr이 들어가있음.
