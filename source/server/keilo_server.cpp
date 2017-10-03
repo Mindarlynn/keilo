@@ -92,7 +92,7 @@ void keilo_server::run_local()
 			break;
 		}
 		
-		push_output(process_message(input, selected_database, selected_table));
+		push_output(process_message(input, &selected_database, &selected_table));
 	}
 }
 
@@ -134,9 +134,12 @@ void keilo_server::accept_client()
 	while (running.load()) {
 		client _client;
 		int addrlen = sizeof _client.addr;
+
 		_client.sock = accept(m_socket, (SOCKADDR*)&_client.addr, &addrlen);
+
 		std::string addr = inet_ntoa(_client.addr.sin_addr);
 		push_output("[" + addr + ":" + std::to_string(_client.addr.sin_port) +"] connected.");
+
 		m_clients.push_back(_client);
 
 		m_client_processes.push_back(std::thread([&]() {
@@ -156,13 +159,13 @@ void keilo_server::accept_client()
 				if (found == m_clients.end())
 					break;
 				else
-					process_client(*found, selected_database, selected_table);
+					process_client(*found, &selected_database, &selected_table);
 			}
 		}));
 	}
 }
 
-void keilo_server::process_client(client& _client, keilo_database* database, keilo_table* table)
+void keilo_server::process_client(client& _client, keilo_database** database, keilo_table** table)
 {
 	char read_data[1024];
 	auto received = recv(_client.sock, read_data, 1024, 0);
@@ -181,9 +184,8 @@ void keilo_server::process_client(client& _client, keilo_database* database, kei
 	//asio::write(*client, asio::buffer(process_message(std::string(read_data))));
 }
 
-const std::string keilo_server::process_message(std::string message, keilo_database* database, keilo_table* table)
+const std::string keilo_server::process_message(std::string message, keilo_database** database, keilo_table** table)
 {
-	
 	std::stringstream result;
 
 	if (message.find(CREATE) != std::string::npos) {
@@ -200,12 +202,12 @@ const std::string keilo_server::process_message(std::string message, keilo_datab
 		else if (auto pos = message.find(TABLE); pos != std::string::npos)
 			result << select_table(message, pos + TABLE.length(), database, table);
 		else if (auto pos = message.find(RECORD); pos != std::string::npos)
-			result << select_record(message, pos + RECORD.length(),table);
+			result << select_record(message, pos + RECORD.length(), table);
 		else
 			result << "Unknown command.";
 	}
 	else if (auto pos = message.find(JOIN); pos != std::string::npos) {
-		result << join_table(message, pos + JOIN.length(),database ,table);
+		result << join_table(message, pos + JOIN.length(),database , table);
 	}
 	else if (auto pos = message.find(INSERT); pos != std::string::npos) {
 		result << insert_record(message, pos + INSERT.length(),table);
@@ -250,7 +252,8 @@ void keilo_server::disconnect_client(client& _client)
 		}
 		*/
 		if (it->addr.sin_addr.S_un.S_addr == _client.addr.sin_addr.S_un.S_addr &&
-			it->addr.sin_port == _client.addr.sin_port) {
+			it->addr.sin_port == _client.addr.sin_port) 
+		{
 			selected_client = it;
 			break;
 		}
@@ -258,8 +261,10 @@ void keilo_server::disconnect_client(client& _client)
 
 	if (selected_client == m_clients.end())
 		throw std::exception("[disconnect_client] Could not find client.");
+
 	std::string addr = inet_ntoa(selected_client->addr.sin_addr);
 	push_output(("[" + addr + ":" + std::to_string(selected_client->addr.sin_port) + "] disconnected.").c_str());
+
 	closesocket(selected_client->sock);
 	m_clients.erase(selected_client);
 }
@@ -285,7 +290,7 @@ std::string keilo_server::create_database(std::string message, size_t pos)
 	return m_application->create_database(name.str());
 }
 
-std::string keilo_server::select_database(std::string message, size_t pos, keilo_database* database)
+std::string keilo_server::select_database(std::string message, size_t pos, keilo_database** database)
 {
 	if (pos >= message.length())
 		return "Syntax error.";
@@ -305,7 +310,7 @@ std::string keilo_server::select_database(std::string message, size_t pos, keilo
 
 	std::stringstream returns;
 
-	if (database = m_application->select_database(name.str()); database)
+	if (*database = m_application->select_database(name.str()); database)
 		returns << "Successfully selected database that was named \"" << name.str() << "\".";
 	else 
 		returns << "Database that was named \"" << name.str() << "\" does not exist in server";
@@ -313,9 +318,9 @@ std::string keilo_server::select_database(std::string message, size_t pos, keilo
 	return returns.str();
 }
 
-std::string keilo_server::export_database(std::string message, size_t pos, keilo_database* database)
+std::string keilo_server::export_database(std::string message, size_t pos, keilo_database** database)
 {
-	if (!database)
+	if (!*database)
 		return "Please select database";
 
 	if (pos >= message.length())
@@ -337,7 +342,7 @@ std::string keilo_server::export_database(std::string message, size_t pos, keilo
 	if (file_name.str().find(".klo") == std::string::npos)
 		return "File name has to include extensions. (this program only support *.klo files)";
 
-	return  m_application->export_database(database->get_name(), file_name.str());
+	return  m_application->export_database((*database)->get_name(), file_name.str());
 }
 
 std::string keilo_server::import_database(std::string message, size_t pos)
@@ -360,9 +365,9 @@ std::string keilo_server::import_database(std::string message, size_t pos)
 	return import_file(file_name.str(), false);
 }
 
-std::string keilo_server::create_table(std::string message, size_t pos, keilo_database* database)
+std::string keilo_server::create_table(std::string message, size_t pos, keilo_database** database)
 {
-	if (!database)
+	if (!*database)
 		return "Please select database.";
 
 	if (pos >= message.length())
@@ -381,12 +386,12 @@ std::string keilo_server::create_table(std::string message, size_t pos, keilo_da
 		else
 			name << message[pos++];
 
-	return database->create_table(name.str());
+	return (*database)->create_table(name.str());
 }
 
-std::string keilo_server::select_table(std::string message, size_t pos, keilo_database* database, keilo_table* table)
+std::string keilo_server::select_table(std::string message, size_t pos, keilo_database** database, keilo_table** table)
 {
-	if (!database)
+	if (!*database)
 		return "Please select database.";
 
 	if (pos >= message.length())
@@ -405,15 +410,15 @@ std::string keilo_server::select_table(std::string message, size_t pos, keilo_da
 		else
 			name << message[pos++];
 		
-	if (table = database->select_table(name.str()); table)
+	if (*table = (*database)->select_table(name.str()); *table)
 		return "Successfully selected table that was named \"" + name.str() + "\".";
 	else
-		return "Table that was named \"" + name.str() + "\" does not exist in database \"" + database->get_name() + "\".";
+		return "Table that was named \"" + name.str() + "\" does not exist in database \"" + (*database)->get_name() + "\".";
 }
 
-std::string keilo_server::join_table(std::string message, size_t pos, keilo_database* database, keilo_table* table)
+std::string keilo_server::join_table(std::string message, size_t pos, keilo_database** database, keilo_table** table)
 {
-	if (!table)
+	if (!*table)
 		return "Please select table.";
 
 	if (pos >= message.length())
@@ -450,7 +455,7 @@ std::string keilo_server::join_table(std::string message, size_t pos, keilo_data
 		if (!_table)
 			return "Table \"" + table_name.str() + "\" is not exist in database \"" + _database->get_name() + "\".";
 
-		database->add_table(table->join(_table));
+		(*database)->add_table((*table)->join(_table));
 	}
 	else {
 		std::stringstream table_name;
@@ -460,19 +465,19 @@ std::string keilo_server::join_table(std::string message, size_t pos, keilo_data
 			else
 				table_name << message[pos++];
 
-		auto _table = database->select_table(table_name.str());
+		auto _table = (*database)->select_table(table_name.str());
 
 		if (!_table)
-			return "Table \"" + table_name.str() + "\" is not exist in database \"" + database->get_name() + "\".";
+			return "Table \"" + table_name.str() + "\" is not exist in database \"" + (*database)->get_name() + "\".";
 
-		database->add_table(table->join(_table));
+		(*database)->add_table((*table)->join(_table));
 	}
-	return "Successfully joined tables and added it to database \"" + database->get_name() + "\".";
+	return "Successfully joined tables and added it to database \"" + (*database)->get_name() + "\".";
 }
 
-std::string keilo_server::drop_table(std::string message, size_t pos, keilo_database* database, keilo_table* table)
+std::string keilo_server::drop_table(std::string message, size_t pos, keilo_database** database, keilo_table** table)
 {
-	if(!database)
+	if(!*database)
 		return "Please select database.";
 
 	if (pos >= message.length())
@@ -490,16 +495,16 @@ std::string keilo_server::drop_table(std::string message, size_t pos, keilo_data
 			break;
 		else
 			name << message[pos++];
+	if(*table)
+		if (name.str() == (*table)->get_name())
+			table = nullptr;
 
-	if (name.str() == table->get_name())
-		table = nullptr;
-
-	return database->drop_table(name.str());
+	return (*database)->drop_table(name.str());
 }
 
-std::string keilo_server::select_record(std::string message, size_t pos, keilo_table* table)
+std::string keilo_server::select_record(std::string message, size_t pos, keilo_table** table)
 {
-	if (!table)
+	if (!*table)
 		return "Please select table.";
 
 	if (pos >= message.length())
@@ -521,7 +526,7 @@ std::string keilo_server::select_record(std::string message, size_t pos, keilo_t
 
 	std::stringstream selected_record;
 	if (identifier.str() == "all") {
-		for (const auto& record : table->get_records()) {
+		for (const auto& record : (*table)->get_records()) {
 			selected_record << "(" << std::endl;
 			for (const auto& instance : record)
 				selected_record << instance.first << ":" << instance.second << ";" << std::endl;
@@ -536,7 +541,7 @@ std::string keilo_server::select_record(std::string message, size_t pos, keilo_t
 			else
 				value << message[pos++];
 
-		auto record = table->select_record(keilo_instance{ identifier.str(), value.str() });
+		auto record = (*table)->select_record(keilo_instance{ identifier.str(), value.str() });
 
 		if (record.size() > 0) {
 			selected_record << "(" << std::endl;
@@ -545,15 +550,15 @@ std::string keilo_server::select_record(std::string message, size_t pos, keilo_t
 			selected_record << ")" << std::endl;
 		}
 		else
-			selected_record << "There is no record that has \"" << value.str() << "\" as " << identifier.str() << " in table " << table->get_name() << "." << std::endl;
+			selected_record << "There is no record that has \"" << value.str() << "\" as " << identifier.str() << " in table " << (*table)->get_name() << "." << std::endl;
 	}
 
 	return selected_record.str();
 }
 
-std::string keilo_server::insert_record(std::string message, size_t pos, keilo_table* table)
+std::string keilo_server::insert_record(std::string message, size_t pos, keilo_table** table)
 {
-	if (!table)
+	if (!*table)
 		return "Please select table";
 
 	keilo_record record;
@@ -583,12 +588,12 @@ std::string keilo_server::insert_record(std::string message, size_t pos, keilo_t
 				pos++;
 	}
 
-	return table->insert_record(record);
+	return (*table)->insert_record(record);
 }
 
-std::string keilo_server::update_record(std::string message, size_t pos, keilo_table* table)
+std::string keilo_server::update_record(std::string message, size_t pos, keilo_table** table)
 {
-	if (!table)
+	if (!*table)
 		return "Please select table.";
 
 	if (pos >= message.length())
@@ -632,12 +637,12 @@ std::string keilo_server::update_record(std::string message, size_t pos, keilo_t
 			new_value << message[pos++];
 	pos += 1;
 
-	return table->update_record(keilo_instance{ condition_identifier.str(), condition_value.str() }, keilo_instance{ new_identifier.str(), new_value.str() });
+	return (*table)->update_record(keilo_instance{ condition_identifier.str(), condition_value.str() }, keilo_instance{ new_identifier.str(), new_value.str() });
 }
 
-std::string keilo_server::remove_record(std::string message, size_t pos, keilo_table* table)
+std::string keilo_server::remove_record(std::string message, size_t pos, keilo_table** table)
 {
-	if (!table)
+	if (!*table)
 		return "Please select table.";
 
 	if (pos >= message.length())
@@ -664,5 +669,5 @@ std::string keilo_server::remove_record(std::string message, size_t pos, keilo_t
 		else
 			value << message[pos++];
 
-	return table->remove_record(keilo_instance{ identifier.str(), value.str() });
+	return (*table)->remove_record(keilo_instance{ identifier.str(), value.str() });
 }
