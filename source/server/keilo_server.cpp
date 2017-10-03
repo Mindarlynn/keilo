@@ -34,6 +34,8 @@ keilo_server::keilo_server(int port) :
 
 	if (bind(m_socket, (SOCKADDR*)&m_addr, sizeof m_addr) == SOCKET_ERROR)
 		throw std::exception(std::to_string(WSAGetLastError()).c_str());
+
+	std::cout << "Successfully initialized winsock2." << std::endl;
 }
 
 keilo_server::~keilo_server()
@@ -65,6 +67,7 @@ void keilo_server::run()
 	if (listen(m_socket, 10) == SOCKET_ERROR)
 		throw std::exception(std::to_string(WSAGetLastError()).c_str());
 	running = true;
+	push_output("Successfully started server.");
 	while (running.load());
 }
 
