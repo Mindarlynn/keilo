@@ -54,7 +54,7 @@ std::string keilo_application::import_file(std::string file_name)
 		m_databases.push_back(keilo_database(file));
 		m_mutex.unlock();
 
-		return "Sucessfully impotred file that was named \"" + file_name + "\".";
+		return "Successfully impotred file that was named \"" + file_name + "\".";
 	}
 	else
 		return "File that was named \"" + file_name + "\" does not exist.";
