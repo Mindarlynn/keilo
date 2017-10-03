@@ -67,7 +67,6 @@ void keilo_server::run()
 
 void keilo_server::run_local()
 {
-	running = true;
 	keilo_database* selected_database = nullptr;
 	keilo_table* selected_table = nullptr;
 	std::string input;
