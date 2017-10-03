@@ -223,9 +223,11 @@ const std::string keilo_server::process_message(std::string message, keilo_datab
 	else if (auto pos = message.find(EXPORT_FILE); pos != std::string::npos) {
 		result << export_database(message, pos + EXPORT_FILE.length(),database);
 	}
+	/*
 	else if (auto pos = message.find(CLEAR); pos != std::string::npos) {
 		system("cls");
 	}
+	*/
 	else
 		result << "Unknown command.";
 
