@@ -6,8 +6,6 @@
 #include <exception>
 #include <unordered_map>
 
-#include <boost/algorithm/string.hpp>
-
 
 keilo_database::keilo_database(std::string _name) : m_name(_name), m_tables(std::list<keilo_table>())
 {

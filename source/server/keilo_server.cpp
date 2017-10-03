@@ -8,20 +8,12 @@
 #include <exception>
 #include <cstdlib>
 
-#include <boost/asio.hpp>
-
-
-namespace asio = boost::asio;
-namespace ip = asio::ip;
-
-
 
 keilo_server::keilo_server(int port) : 
 	m_application(new keilo_application()), 
-	m_clients(std::list < ip::tcp::socket > ()), 
+	m_clients(std::list <client> ()), 
 	m_client_processes(std::list<std::thread>()), 
 	m_port(port), 
-	m_acceptor(m_io_service, ip::tcp::endpoint(ip::address::from_string("127.0.0.1"), m_port)),
 	print_thread(std::thread(&keilo_server::print_output, this)),
 	accept_thread(std::thread(&keilo_server::accept_client, this))
 {
@@ -36,14 +28,10 @@ keilo_server::~keilo_server()
 	if (print_thread.joinable())
 		print_thread.join();
 	for (auto& client : m_clients)
-		client.close();
-	m_acceptor.close();
 }
 
 void keilo_server::run()
 {
-	m_acceptor.listen(5);
-	run_local();
 }
 
 void keilo_server::run_local()
@@ -110,37 +98,19 @@ void keilo_server::push_output(const std::string message)
 void keilo_server::accept_client()
 {
 	while (running.load()) {
-		ip::tcp::socket _client(m_io_service);
-		m_acceptor.accept(_client);
-
-		m_clients.push_back(std::move(_client));
 
 		m_client_processes.push_back(std::thread([&]() {
 			auto found = false;
-			do {
-				process_client(_client);
-				for (const auto& client : m_clients) {
-					if (client.remote_endpoint().address().to_string() == _client.remote_endpoint().address().to_string() &&
-						client.remote_endpoint().port() == _client.remote_endpoint().port())
 					{
 						found = true;
 						break;
 					}
 				}
-			} while (found);
 		}));
 	}
 }
 
-void keilo_server::process_client(ip::tcp::socket& client)
 {
-	asio::streambuf read_buffer;
-	asio::read(client, read_buffer);
-
-	std::string read_data = asio::buffer_cast<const char*>(read_buffer.data());
-	read_data.erase(--read_data.end());
-
-	asio::write(client, asio::buffer(process_message(read_data.c_str())));
 }
 
 const std::string keilo_server::process_message(std::string message)
@@ -196,7 +166,6 @@ const std::string keilo_server::process_message(std::string message)
 	return result.str();
 }
 
-void keilo_server::disconnect_client(ip::tcp::socket _client)
 {
 	auto selected_client = m_clients.end();
 
@@ -211,9 +180,6 @@ void keilo_server::disconnect_client(ip::tcp::socket _client)
 
 	if (selected_client == m_clients.end())
 		throw std::exception("[disconnect_client] Could not find client.");
-
-	push_output(("[disconnect_client] (" + selected_client->remote_endpoint().address().to_string() + ") disconnected.").c_str());
-	selected_client->close();
 	m_clients.erase(selected_client);
 
 	for (auto& process : m_client_processes) {
