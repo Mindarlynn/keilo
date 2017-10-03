@@ -299,10 +299,14 @@ std::string keilo_server::select_database(std::string message, size_t pos, keilo
 		else
 			name << message[pos++];
 
-	if (selected_database = m_application->select_database(name.str()); selected_database)
-		return "Successfully selected database that was named \"" + name.str() + "\".";
-	else
-		return "Database that was named \"" + name.str() + "\" does not exist in server";
+	std::stringstream returns;
+
+	if (database = m_application->select_database(name.str()); database)
+		returns << "Successfully selected database that was named \"" << name.str() << "\".";
+	else 
+		returns << "Database that was named \"" << name.str() << "\" does not exist in server";
+
+	return returns.str();
 }
 
 std::string keilo_server::export_database(std::string message, size_t pos, keilo_database* database)
