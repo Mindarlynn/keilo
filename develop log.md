@@ -19,7 +19,7 @@ client의 소켓이 disconnect되어 그런 것으로 추정. Disconnect의 이�
 ### 에러
 boost asio socket에 대한 이해도 부족으로 인해 test client에서 connect 불가 exception이 throw됨.<br/>
 
-## 2017_10_03
+## 2017_10_03_1
 
 ### 문제해결
 boost소켓 연결 후 read하는 부분에서 알수없는 exception이 발생해 boost에서 다시 winsock으로 변경.<br/>
@@ -30,3 +30,13 @@ boost소켓 연결 후 read하는 부분에서 알수없는 exception이 발생�
 ### 에러
 클라이언트의 세션 독립성을 위해 클라이언트별로 database와 table 변수를 가지게 하였음.<br/>
 함수에서 변수에 대입을 하는 부분까지 제대로 동작하지만 함수를 탈출하면 변수에 기존의 데이터가 아닌 nullptr이 들어가있음.
+
+## 2017_10_03_2
+
+### 문제해결
+기존의 database와 table 변수를 single-pointer로 관리해 값을 넘겨주었는데 함수에서 call by value로 처리되었다.<br/>
+single-pointer variable 자체가 하나의 value로 인식되었기 때문이다.<br/>
+그래서 함수 인자값들을 double-pointer로 변경, 이로인해 클라이언트 개개인마다 독립적인 작업을 할 수 있게 되었다.<br/>
+<br/><br/>
+### 에러
+없음 ^^7
