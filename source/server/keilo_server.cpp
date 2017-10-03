@@ -258,11 +258,6 @@ void keilo_server::disconnect_client(client& _client)
 	push_output(("[" + addr + ":" + std::to_string(selected_client->addr.sin_port) + "] disconnected.").c_str());
 	closesocket(selected_client->sock);
 	m_clients.erase(selected_client);
-
-	for (auto& process : m_client_processes) {
-		if (process.joinable())
-			process.join();
-	}
 }
 
 std::string keilo_server::create_database(std::string message, size_t pos)
