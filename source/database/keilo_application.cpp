@@ -3,6 +3,7 @@
 #include "json.hpp"
 
 #include <experimental/filesystem>
+#include <algorithm>
 #include <sstream>
 #include <fstream>
 #include <mutex>
