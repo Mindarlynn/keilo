@@ -9,7 +9,7 @@
 #include <mutex>
 #include <exception>
 
-
+using json = nlohmann::json;
 
 std::string keilo_application::create_database(std::string _name)
 {
