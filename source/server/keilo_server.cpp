@@ -8,6 +8,7 @@
 #include <string>
 #include <exception>
 #include <cstdlib>
+#include <iomanip>
 #include <winsock2.h>
 
 #pragma warning(disable:4996)
@@ -513,12 +514,20 @@ std::string keilo_server::select_record(std::string message, size_t pos, keilo_t
 			pos++;
 
 	std::stringstream identifier;
-	while (pos < message.length()) 
+	while (pos < message.length())
 		if (message[pos] == ':')
 			break;
+		else if (message[pos] == ' ') 
+			while (message[pos] != ':') {
+				pos++;
+				continue;
+		}
 		else
 			identifier << message[pos++];
-	pos += 1;
+
+	while (++pos < message.length())
+		if (message[pos] != ' ')
+			break;
 
 	std::stringstream selected_record;
 	const std::list<keilo_record> records = (*table)->get_records();
@@ -569,6 +578,12 @@ std::string keilo_server::insert_record(std::string message, size_t pos, keilo_t
 	if (!*table)
 		return "Please select table";
 
+	while (pos < message.length())
+		if (message[pos] != ' ')
+			break;
+		else
+			++pos;
+
 	keilo_record record;
 
 	while (pos < message.length()) {
@@ -578,7 +593,14 @@ std::string keilo_server::insert_record(std::string message, size_t pos, keilo_t
 				break;
 			else
 				identifier << message[pos++];
-		pos += 1;
+
+		++pos;
+
+		while (pos < message.length())
+			if (message[pos] != ' ')
+				break;
+			else
+				++pos;
 
 		std::stringstream value;
 		while (pos < message.length())
