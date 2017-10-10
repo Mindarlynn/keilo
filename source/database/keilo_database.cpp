@@ -1,4 +1,5 @@
 #include "keilo_database.hpp"
+#include "json.hpp"
 
 #include <string>
 #include <sstream>
@@ -6,6 +7,7 @@
 #include <exception>
 #include <unordered_map>
 
+using json = nlohmann::json;
 
 keilo_database::keilo_database(std::string _name) : m_name(_name), m_tables(std::list<keilo_table>())
 {
@@ -83,7 +85,8 @@ std::string keilo_database::drop_table(std::string _name)
 }
 
 void keilo_database::parse_file(std::ifstream& _file)
-{
+{	
+	/*
 	std::string file_content;
 	std::stringstream content;
 
@@ -98,6 +101,7 @@ void keilo_database::parse_file(std::ifstream& _file)
 	_file.close();
 	file_content = content.str();
 
+	
 	int i;
 	std::stringstream db_name;
 
@@ -162,6 +166,37 @@ void keilo_database::parse_file(std::ifstream& _file)
 		m_mutex.lock();
 		m_tables.push_back(keilo_table(table_name.str(), records));
 		m_mutex.unlock();
+	}
+	*/
+	
+	json file;
+	_file >> file;
+
+	for (auto db = file.cbegin(); db != file.cend(); ++db) {
+		set_name(db.key());
+
+		for (auto tb = db->cbegin(); tb != db->cend(); ++tb) {
+			std::list<keilo_record> records;
+			for (auto rc = (*tb)["value"].cbegin(); rc != (*tb)["value"].cend(); ++rc) {
+				keilo_record record;
+				int pos;
+				for (auto it = rc->cbegin(); it != rc->cend(); ++it) {
+					keilo_instance inst{ it.key(), it.value().dump() };
+					record.push_back(inst);
+					if (it.key() == "index")
+						pos = it.value();
+				}
+
+				auto it = records.cbegin();
+				auto count = 0;
+				while (it != records.cend() && ++count != pos)
+					++it;
+				records.insert(it, record);
+			}
+			m_mutex.lock();
+			m_tables.push_back(keilo_table{ (*tb)["name"], records });
+			m_mutex.unlock();
+		}
 	}
 }
 

@@ -335,8 +335,8 @@ std::string keilo_server::export_database(std::string message, size_t pos, keilo
 		else
 			file_name << message[pos++];
 
-	if (file_name.str().find(".klo") == std::string::npos)
-		return "File name has to include extensions. (this program only support *.klo files)";
+	if (file_name.str().find(".json") == std::string::npos)
+		return "File name has to include extensions. (this program only support *.json files)";
 
 	return  m_application->export_database((*database)->get_name(), file_name.str());
 }
@@ -521,12 +521,20 @@ std::string keilo_server::select_record(std::string message, size_t pos, keilo_t
 	pos += 1;
 
 	std::stringstream selected_record;
+	const std::list<keilo_record> records = (*table)->get_records();
 	if (identifier.str() == "all") {
-		for (const auto& record : (*table)->get_records()) {
-			selected_record << "(" << std::endl;
-			for (const auto& instance : record)
-				selected_record << instance.first << ":" << instance.second << ";" << std::endl;
-			selected_record << ")" << std::endl;
+		for (auto record = records.cbegin(); record != records.cend();) {
+			selected_record << '{' << std::endl;
+			for (auto instance = record->cbegin(); instance != record->cend();) {
+				selected_record << '\t' << instance->first << ':' << instance->second;
+				if (++instance; instance != record->cend())
+					selected_record << ',';
+				selected_record << std::endl;
+			}
+			selected_record << '}';
+			if (++record; record != records.cend())
+				selected_record << ',';
+			selected_record << std::endl;
 		}
 	}
 	else {
@@ -540,10 +548,14 @@ std::string keilo_server::select_record(std::string message, size_t pos, keilo_t
 		auto record = (*table)->select_record(keilo_instance{ identifier.str(), value.str() });
 
 		if (record.size() > 0) {
-			selected_record << "(" << std::endl;
-			for (const auto& instance : record)
-				selected_record << instance.first << ":" << instance.second << ";" << std::endl;
-			selected_record << ")" << std::endl;
+			selected_record << '{' << std::endl;
+			for (auto instance = record.cbegin(); instance != record.cend();) {
+				selected_record << '\t' << instance->first << ':' << instance->second;
+				if (++instance; instance != record.cend())
+					selected_record << ',';
+				selected_record << std::endl;
+			}
+			selected_record << '}' << std::endl;
 		}
 		else
 			selected_record << "There is no record that has \"" << value.str() << "\" as " << identifier.str() << " in table " << (*table)->get_name() << "." << std::endl;

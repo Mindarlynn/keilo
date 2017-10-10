@@ -1,5 +1,6 @@
 #include "keilo_application.hpp"
 #include "keilo_database.hpp"
+#include "json.hpp"
 
 #include <experimental/filesystem>
 #include <sstream>
@@ -40,8 +41,8 @@ keilo_database* keilo_application::select_database(std::string _name)
 
 std::string keilo_application::import_file(std::string file_name)
 {
-	if (file_name.find(".klo") == std::string::npos)
-		return "This program support only *.klo files.";
+	if (file_name.find(".json") == std::string::npos)
+		return "This program support only *.json files.";
 	//throw std::exception("This program support only *.klo files.");
 
 	std::stringstream file_path;
@@ -64,29 +65,42 @@ std::string keilo_application::export_database(std::string database_name, std::s
 {
 	auto database = select_database(database_name);
 	try {
+		json js;
+		js[database->get_name()] = json::array();
+		for (auto& table : database->get_tables()) {
+			json tb;
+			tb["name"] = table.get_name();
+			json rc_arr = json::array();
+			for (auto& record : table.get_records()) {
+				json rc;
+				for (auto& instance : record) {
+					if (instance.second[0] >= '0' && instance.second[0] <= '9')
+						rc[instance.first] = std::atoi(instance.second.c_str());
+					else {
+						int pos = 0;
+						std::string from = "\"";
+						while ((pos = instance.second.find(from, pos)) != std::string::npos)
+							instance.second.replace(pos, from.length(), "");
+
+						pos = 0;
+						from = "\\";
+						while ((pos = instance.second.find(from, pos)) != std::string::npos)
+							instance.second.replace(pos, from.length(), "");
+
+						rc[instance.first] = instance.second;
+					}
+				}
+				rc_arr += rc;
+			}
+			tb["value"] = rc_arr;
+			js[database->get_name()] += tb;
+		}
+
 		std::stringstream file_path;
-
 		file_path << std::experimental::filesystem::current_path().generic_string() << "/database/" << file_name;
-
 		std::ofstream file(file_path.str());
 
-		file << database->get_name() << std::endl;
-		file << "[" << std::endl;
-		for (auto table : database->get_tables())
-		{
-			file << "	" << table.get_name() << std::endl;
-			file << "	{" << std::endl;
-			for (const auto& record : table.get_records())
-			{
-				file << "		(" << std::endl;
-				for (const auto& instance : record)
-					file << "		" << instance.first << ":" << instance.second << ";" << std::endl;
-				file << "		)" << std::endl;
-			}
-			file << "	}" << std::endl;
-		}
-		file << "]";
-
+		file << js;
 		file.flush();
 		file.close();
 	}
