@@ -76,7 +76,7 @@ keilo_record keilo_table::select_record(keilo_instance _instance)
 std::string keilo_table::insert_record(keilo_record & _record)
 {
 	std::lock_guard<std::mutex> mutex_guard(m_mutex);
-	int pos;
+	int pos = 0;
 	std::string index;
 
 	for (auto& i_instance : _record) 
