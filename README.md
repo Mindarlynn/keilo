@@ -36,3 +36,56 @@ clear;
 
 ## data file
 keilo database use <b><i>*.json</i></b> as an extension.
+
+### example
+```json
+{
+    "database1": 
+    [
+        {
+            "name": "table1",
+            "value":
+            [
+                {
+                    "age": 19, 
+                    "index": 1,
+                    "name": "kwonyegu"
+                }, 
+                {
+                    "age": 19,
+                    "index": 2,
+                    "name": "xklest"
+                }, 
+                {
+                    "age": 10,
+                    "index": 3
+                }, 
+                {
+                    "age": 40,
+                    "index": 4
+                }
+            ]
+        }, 
+        {
+            "name": "table2",
+            "value": 
+            [
+                {
+                    "english": 100,
+                    "history": 100,
+                    "index": 1,
+                    "korean": 100,
+                    "math": 100
+                }, 
+                {
+                    "english": 50,
+                    "history": 50,
+                    "index": 2,
+                    "korean": 50,
+                    "math": 50
+                }
+            ]
+        }
+    ]
+}
+```
