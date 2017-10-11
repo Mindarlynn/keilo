@@ -13,73 +13,257 @@
 class keilo_server
 {
 public:
-	
-	keilo_server(int port);
+
+	explicit keilo_server(int port);
 	~keilo_server();
 
-public:  // user accessable functions
+#pragma region User Accessable Functions
 	void run();
 	void run_local();
 
+	/**
+	 * \brief Import database file to server.
+	 * \param file_name Name of database file.
+	 * \param ps Whether to output.
+	 * \return Result of importing file.
+	 */
 	std::string import_file(std::string file_name, bool ps = true);
+#pragma endregion
 
-private: // outupt
+private: 
+#pragma region Printing
+	/**
+	 * \brief `print_thread_` 's function. print messages in the `outputs_`.
+	 */
 	void print_output();
+
+	/**
+	 * \brief Push message into queue.
+	 * \param message Message that you want to put into the queue.
+	 */
 	void push_output(const std::string message);
 
-	std::thread print_thread;
-	std::queue<std::string> m_outputs;
-	std::mutex m_output_mutex;
-	std::atomic<bool> printing = false;
+	/**
+	 * \brief Thread that prints messages was pushed into the queue.
+	 */
+	std::thread print_thread_;
 
-private: // networking
+	/**
+	 * \brief Have messages that will be printed.
+	 */
+	std::queue<std::string> outputs_;
+
+	/**
+	 * \brief Mutex of queue `outputs_`.
+	 */
+	std::mutex output_mutex_;
+
+	/**
+	 * \brief Whether thread is printing or not.
+	 */
+	std::atomic<bool> is_printing_ = false;
+#pragma endregion
+
+#pragma region Networking
+	/**
+	 * \brief `accept_thread_` 's function. Accept clients and process client's messages.
+	 */
 	void accept_client();
-	void process_client(client& _client, keilo_database** database, keilo_table** table);
-	const std::string process_message(std::string message, keilo_database** database, keilo_table** table);
-	void disconnect_client(client& _client);
 
-	std::thread accept_thread;
-	int m_port;
-	std::list<client> m_clients;
-	SOCKET m_socket;
-	WSADATA m_wsa;
-	SOCKADDR_IN m_addr;
-	std::list<std::thread> m_client_processes;
+	/**
+	 * \brief Communicate with client.
+	 * \param client Client that accepted from `accept_thread_`.
+	 * \param database Selected database.
+	 * \param table Selected table.
+	 */
+	void process_client(client& client, keilo_database** database, keilo_table** table);
+
+	/**
+	 * \brief Process commands that client sent.
+	 * \param message Message that client sent.
+	 * \param database Selected database.
+	 * \param table Selected table.
+	 * \return result of processing command.
+	 */
+	std::string process_message(std::string message, keilo_database** database, keilo_table** table);
+
+	/**
+	 * \brief Disconnect client.
+	 * \param client Client that sent anything to server.
+	 */
+	void disconnect_client(client& client);
+
+	/**
+	 * \brief Thread that accpet clients.
+	 */
+	std::thread accept_thread_;
+
+	/**
+	 * \brief List of clients.
+	 */
+	std::list<client> clients_;
+
+	/**
+	 * \brief Server Socket(TCP).
+	 */
+	SOCKET socket_;
+
+	/**
+	 * \brief Error handling variable that Windows support.
+	 */
+	WSADATA wsa_;
+
+	/**
+	 * \brief Address of server.
+	 */
+	SOCKADDR_IN address_;
+
+	/**
+	* \brief Port number of server.
+	*/
+	int port_;
+
+	/**
+	 * \brief List of clients that is communicating with server.
+	 */
+	std::list<std::thread> client_processes_;
+#pragma endregion
 
 
-private: // database processing
-	std::string create_database(std::string message, size_t pos);
-	std::string select_database(std::string message, size_t pos, keilo_database** database);
-	std::string export_database(std::string message, size_t pos, keilo_database** database);
+#pragma region Processing
+	/**
+	 * \brief Create database.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \return Result of creating database
+	 */
+	std::string create_database(std::string message, size_t pos) const;
+
+	/**
+	 * \brief Select database.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param database Selected database will be assigned into this variable.
+	 * \return Result of selecting database
+	 */
+	std::string select_database(std::string message, size_t pos, keilo_database** database) const;
+
+	/**
+	 * \brief  Export database to file.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param database Selected database.
+	 * \return Result of exporting database
+	 */
+	std::string export_database(std::string message, size_t pos, keilo_database** database) const;
+
+	/**
+	 * \brief Import database from file.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \return Result of importing database.
+	 */
 	std::string import_database(std::string message, size_t pos);
 
-	std::string create_table(std::string message, size_t pos, keilo_database** database);
-	std::string select_table(std::string message, size_t pos, keilo_database** database, keilo_table** table);
-	std::string join_table(std::string message, size_t pos, keilo_database** database, keilo_table** table);
-	std::string drop_table(std::string message, size_t pos, keilo_database** database, keilo_table** table);
+	/**
+	 * \brief Create table into the database.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param database Selected database.
+	 * \return Result of creating table.
+	 */
+	static std::string create_table(std::string message, size_t pos, keilo_database** database);
 
-	std::string select_record(std::string message, size_t pos, keilo_table** table);
-	std::string insert_record(std::string message, size_t pos, keilo_table** table);
-	std::string update_record(std::string message, size_t pos, keilo_table** table);
-	std::string remove_record(std::string message, size_t pos, keilo_table** table);
+	/**
+	 * \brief Select table into the database.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param database Selected database.
+	 * \param table Selected table will be assigned into this variable.
+	 * \return Result of selecting table
+	 */
+	static std::string select_table(std::string message, size_t pos, keilo_database** database, keilo_table** table);
 
-private: // commands
-	const std::string CREATE = "create";
-	const std::string SELECT = "select";
-	const std::string JOIN = "join";
-	const std::string INSERT = "insert";
-	const std::string UPDATE = "update";
-	const std::string REMOVE = "remove";
-	const std::string DROP = "drop";
-	const std::string EXPORT_FILE = "export";
-	const std::string IMPORT_FILE = "import";
-	const std::string CLEAR = "clear";
-	const std::string DATABASE = "database";
-	const std::string TABLE = "table";
-	const std::string RECORD = "record";
+	/**
+	 * \brief Join table.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param database Selected database.
+	 * \param table Selected table.
+	 * \return Result of joining tables
+	 */
+	std::string join_table(std::string message, size_t pos, keilo_database** database, keilo_table** table) const;
 
-private:
-	std::atomic<bool> running = false;
+	/**
+	 * \brief Drop table.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param database Selected database.
+	 * \param table Selected table.
+	 * \return Result of dropping table.
+	 */
+	static std::string drop_table(std::string message, size_t pos, keilo_database** database, keilo_table** table);
 
-	std::unique_ptr<keilo_application> m_application;
+	/**
+	 * \brief Select records from table
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param table Selected table.
+	 * \return Selected records.
+	 */
+	static std::string select_record(std::string message, size_t pos, keilo_table** table);
+
+	/**
+	 * \brief Insert record into table.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param table Selected table.
+	 * \return Result of inserting record.
+	 */
+	static std::string insert_record(std::string message, size_t pos, keilo_table** table);
+
+	/**
+	 * \brief Update record that meets the condition.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param table Selected table.
+	 * \return Result of updating record.
+	 */
+	static std::string update_record(std::string message, size_t pos, keilo_table** table);
+
+	/**
+	 * \brief Remove record that meets the condition.
+	 * \param message Message that was sent from client.
+	 * \param pos Iterator's position.
+	 * \param table Selected table.
+	 * \return Result of removing record.
+	 */
+	static std::string remove_record(std::string message, size_t pos, keilo_table** table);
+#pragma endregion
+
+#pragma region Command
+	const std::string create_ = "create";
+	const std::string select_ = "select";
+	const std::string join_ = "join";
+	const std::string insert_ = "insert";
+	const std::string update_ = "update";
+	const std::string remove_ = "remove";
+	const std::string drop_ = "drop";
+	const std::string export_file_ = "export";
+	const std::string import_file_ = "import";
+	const std::string clear_ = "clear";
+	const std::string database_ = "database";
+	const std::string table_ = "table";
+	const std::string record_ = "record";
+#pragma endregion
+
+	/**
+	 * \brief Whether program is running.
+	 */
+	std::atomic<bool> is_running_ = false;
+
+	/**
+	 * \brief Core database.
+	 */
+	std::unique_ptr<keilo_application> application_;
 };

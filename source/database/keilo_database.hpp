@@ -1,40 +1,84 @@
 #pragma once
 
 #include "keilo_table.hpp"
-#include "keilo_core.hpp"
 
 #include <string>
-#include <vector>
-#include <fstream>
 #include <mutex>
 
 class keilo_database
 {
 public:
-	keilo_database(std::string _name);
-	keilo_database(std::ifstream& _file);
-	keilo_database(const keilo_database& _other);
+	explicit keilo_database(std::string name);
+	explicit keilo_database(std::ifstream& file);
+	keilo_database(const keilo_database& other);
 
-public:
-	std::string create_table(std::string _name);
-	std::string add_table(keilo_table& _table);
-	keilo_table* select_table(std::string _name);
-	std::string drop_table(std::string _name);
+	/**
+	 * \brief Create empty table.
+	 * \param name Table's name.
+	 * \return Result of creating table.
+	 */
+	std::string create_table(std::string name);
+
+	/**
+	 * \brief Add table into the database.
+	 * \param other Table that will be added into the database.
+	 * \return Result of adding table.
+	 */
+	std::string add_table(keilo_table& other);
+
+	/**
+	 * \brief Select table that has same name with parameter.
+	 * \param name Table's name.
+	 * \return Selected table or nullptr.
+	 */
+	keilo_table* select_table(std::string name);
+
+	/**
+	 * \brief Drop table that has same name with parameter.
+	 * \param name Table's name
+	 * \return Result of dropping table.
+	 */
+	std::string drop_table(std::string name);
 
 private:
-	void parse_file(std::ifstream& _file);
-	
+	/**
+	 * \brief Parse database file.
+	 * \param file Database file.
+	 */
+	void parse_file(std::ifstream& file);
+
 public:
+	/**
+	 * \brief Returns list of table.
+	 * \return List of table.
+	 */
 	std::list<keilo_table> get_tables();
+
+	/**
+	 * \brief Get table's name.
+	 * \return Table's name.
+	 */
 	std::string get_name() const;
 
 private:
-	void set_name(std::string _name);
+	/**
+	 * \brief Set database's name.
+	 * \param name Database's new name.
+	 */
+	void set_name(std::string name);
 
-private:
-	std::string m_name;
+	/**
+	 * \brief Table's name.
+	 */
+	std::string name_;
 
-	std::mutex m_mutex;
-	std::list<keilo_table> m_tables;
+	/**
+	 * \brief Mutex of `tables_`.
+	 */
+	std::mutex mutex_;
+
+	/**
+	 * \brief List of table.
+	 */
+	std::list<keilo_table> tables_;
 };
-
