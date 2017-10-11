@@ -333,7 +333,7 @@ std::string keilo_server::select_database(std::string message, size_t pos, keilo
 
 	std::stringstream returns;
 
-	if (*database = application_->select_database(name.str()); database)
+	if (*database = application_->select_database(name.str()); *database)
 		returns << "Successfully selected database that was named \"" << name.str() << "\".";
 	else
 		returns << "Database that was named \"" << name.str() << "\" does not exist in server";
