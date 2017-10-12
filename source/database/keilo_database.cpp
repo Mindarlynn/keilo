@@ -26,37 +26,30 @@ std::string keilo_database::create_table(const std::string name)
 
 	for (const auto& table : tables_)
 		if (table.get_name() == name)
-			return "Table that was named \"" + name + "\" already exist in database.";
+			return R"(Table that was named ")" + name + R"(" already exist in database.)";
 
-	tables_.push_back(keilo_table(name));
-	return "Successfully create table that was named \"" + name + "\".";
+	tables_.emplace_back(name);
+	return R"(Successfully create table that was named ")" + name + R"(".)";
 }
 
 std::string keilo_database::add_table(keilo_table& other)
 {
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 	for (const auto& table : tables_)
-	{
-		if (table.get_name() != other.get_name())
-			continue;
+		if (table.get_name() == other.get_name())
+			return R"(Table ")" + other.get_name() + R"(" already exist in database ")" + get_name() + R"(".)";
 
-		return "Table \"" + other.get_name() + "\" already exist in database \"" + get_name() + "\".";
-		//throw std::exception(("Table \"" + _table.get_name() + "\" already exist in database \"" + get_name() + "\".").c_str());
-	}
 	tables_.push_back(other);
-	return "Successfully added table that was named \"" + other.get_name() + "\".";
+	return R"(Successfully added table that was named ")" + other.get_name() + R"(".)";
 }
 
 keilo_table* keilo_database::select_table(const std::string name)
 {
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 	for (auto& table : tables_)
-	{
-		if (table.get_name() != name)
-			continue;
+		if (table.get_name() == name)
+			return &table;
 
-		return &table;
-	}
 	return nullptr;
 }
 
@@ -66,19 +59,17 @@ std::string keilo_database::drop_table(const std::string name)
 	auto it = tables_.end();
 
 	for (auto table = tables_.begin(); table != tables_.end(); ++table)
-	{
-		if (table->get_name() != name)
-			continue;
-
-		it = table;
-		break;
-	}
+		if (table->get_name() == name)
+		{
+			it = table;
+			break;
+		}
 
 	if (it == tables_.end())
-		return "Table that was named \"" + name + "\" dose not exist in database \"" + get_name() + "\".";
+		return R"(Table that was named ")" + name + R"(" dose not exist in database ")" + get_name() + R"(".)";
 
 	tables_.erase(it);
-	return "Successfully droped table that was named \"" + name + "\".";
+	return R"(Successfully droped table that was named ")" + name + R"(".)";
 }
 
 void keilo_database::parse_file(std::ifstream& file)
@@ -90,14 +81,14 @@ void keilo_database::parse_file(std::ifstream& file)
 	{
 		set_name(db.key());
 
-		for (auto tb = db->cbegin(); tb != db->cend(); ++tb)
+		for (const auto& tb : *db)
 		{
 			std::list<keilo_record> records;
-			for (auto rc = (*tb)["value"].cbegin(); rc != (*tb)["value"].cend(); ++rc)
+			for (const auto& rc : tb["value"])
 			{
 				keilo_record record;
 				auto pos = 0;
-				for (auto it = rc->cbegin(); it != rc->cend(); ++it)
+				for (auto it = rc.cbegin(); it != rc.cend(); ++it)
 				{
 					const keilo_instance inst{it.key(), it.value().dump()};
 					record.push_back(inst);
@@ -112,7 +103,7 @@ void keilo_database::parse_file(std::ifstream& file)
 				records.insert(it, record);
 			}
 			mutex_.lock();
-			tables_.push_back(keilo_table{(*tb)["name"], records});
+			tables_.emplace_back(tb["name"], records);
 			mutex_.unlock();
 		}
 	}

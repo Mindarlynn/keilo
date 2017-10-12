@@ -15,13 +15,11 @@ std::string keilo_application::create_database(const std::string name)
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 
 	for (const auto& database : databases_)
-	{
 		if (database.get_name() == name)
-			return "Database that was named \"" + name + "\" already exist in application.";
-	}
+			return R"(Database that was named ")" + name + R"(" already exist in application.)";
 
-	databases_.push_back(keilo_database(name));
-	return "Successfully create database that was named \"" + name + "\".";
+	databases_.emplace_back(name);
+	return R"(Successfully create database that was named ")" + name + R"(".)";
 }
 
 keilo_database* keilo_application::select_database(const std::string name)
@@ -29,12 +27,8 @@ keilo_database* keilo_application::select_database(const std::string name)
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 
 	for (auto& database : databases_)
-	{
-		if (database.get_name() != name)
-			continue;
-
-		return &database;
-	}
+		if (database.get_name() == name)
+			return &database;
 
 	return nullptr;
 }
@@ -51,11 +45,11 @@ std::string keilo_application::import_file(std::string file_name)
 	if (std::ifstream file(file_path.str()); file)
 	{
 		std::lock_guard<std::mutex> mutex_lock(mutex_);
-		databases_.push_back(keilo_database(file));
+		databases_.emplace_back(file);
 
-		return "Successfully impotred file that was named \"" + file_name + "\".";
+		return R"(Successfully impotred file that was named ")" + file_name + R"(".)";
 	}
-	return "File that was named \"" + file_name + "\" does not exist.";
+	return R"(File that was named ")" + file_name + R"(" does not exist.)";
 }
 
 std::string keilo_application::export_database(const std::string database_name, const std::string file_name)
@@ -79,8 +73,8 @@ std::string keilo_application::export_database(const std::string database_name, 
 						rc[instance.first] = atoi(instance.second.c_str());
 					else
 					{
-						int pos = 0;
-						std::string from = "\"";
+						size_t pos = 0;
+						const std::string from = R"(")";
 
 						while ((pos = instance.second.find(from, pos)) != std::string::npos)
 						{
@@ -109,7 +103,7 @@ std::string keilo_application::export_database(const std::string database_name, 
 	{
 		return e.what();
 	}
-	return "Successfully exported database that was named \"" + database_name + "\".";
+	return R"(Successfully exported database that was named ")" + database_name + R"(".)";
 }
 
 std::list<keilo_database> keilo_application::get_databases()

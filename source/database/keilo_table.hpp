@@ -59,7 +59,7 @@ public:
 	 * \brief Get Count of records.
 	 * \return Count of records.
 	 */
-	int count();
+	size_t count();
 
 	/**
 	 * \brief Get Table's name

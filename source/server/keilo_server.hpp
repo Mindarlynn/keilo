@@ -19,7 +19,7 @@ public:
 
 #pragma region User Accessable Functions
 	void run();
-	void run_local();
+	//void run_local();
 
 	/**
 	 * \brief Import database file to server.
@@ -30,7 +30,7 @@ public:
 	std::string import_file(std::string file_name, bool ps = true);
 #pragma endregion
 
-private: 
+private:
 #pragma region Printing
 	/**
 	 * \brief `print_thread_` 's function. print messages in the `outputs_`.
@@ -57,11 +57,6 @@ private:
 	 * \brief Mutex of queue `outputs_`.
 	 */
 	std::mutex output_mutex_;
-
-	/**
-	 * \brief Whether thread is printing or not.
-	 */
-	std::atomic<bool> is_printing_ = false;
 #pragma endregion
 
 #pragma region Networking
@@ -89,9 +84,9 @@ private:
 
 	/**
 	 * \brief Disconnect client.
-	 * \param client Client that sent anything to server.
+	 * \param address Address of client that will be disconnected from server.
 	 */
-	void disconnect_client(client& client);
+	void disconnect_client(const SOCKADDR_IN address);
 
 	/**
 	 * \brief Thread that accpet clients.
