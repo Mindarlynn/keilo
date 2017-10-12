@@ -90,8 +90,7 @@ void keilo_database::parse_file(std::ifstream& file)
 				auto pos = 0;
 				for (auto it = rc.cbegin(); it != rc.cend(); ++it)
 				{
-					const keilo_instance inst{it.key(), it.value().dump()};
-					record.push_back(inst);
+					record.emplace_back(it.key(), it.value().dump());
 					if (it.key() == "index")
 						pos = it.value();
 				}

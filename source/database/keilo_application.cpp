@@ -19,6 +19,7 @@ std::string keilo_application::create_database(const std::string name)
 			return R"(Database that was named ")" + name + R"(" already exist in application.)";
 
 	databases_.emplace_back(name);
+
 	return R"(Successfully create database that was named ")" + name + R"(".)";
 }
 
@@ -42,14 +43,15 @@ std::string keilo_application::import_file(std::string file_name)
 
 	file_path << std::experimental::filesystem::current_path().generic_string() << "/database/" << file_name;
 
-	if (std::ifstream file(file_path.str()); file)
-	{
-		std::lock_guard<std::mutex> mutex_lock(mutex_);
-		databases_.emplace_back(file);
+	std::ifstream file(file_path.str());
 
-		return R"(Successfully impotred file that was named ")" + file_name + R"(".)";
-	}
-	return R"(File that was named ")" + file_name + R"(" does not exist.)";
+	if (!file)
+		return R"(File that was named ")" + file_name + R"(" does not exist.)";
+
+	std::lock_guard<std::mutex> mutex_lock(mutex_);
+	databases_.emplace_back(file);
+
+	return R"(Successfully impotred file that was named ")" + file_name + R"(".)";
 }
 
 std::string keilo_application::export_database(const std::string database_name, const std::string file_name)

@@ -84,6 +84,7 @@ std::string keilo_table::insert_record(keilo_record& record)
 		++it;
 
 	records_.insert(it, record);
+
 	return R"(Successfully inserted record that has index")" + index + R"(" to table ")" + get_name() + R"(".)";
 }
 
