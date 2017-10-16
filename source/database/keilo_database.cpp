@@ -90,7 +90,21 @@ void keilo_database::parse_file(std::ifstream& file)
 				auto pos = 0;
 				for (auto it = rc.cbegin(); it != rc.cend(); ++it)
 				{
-					record.emplace_back(it.key(), it.value().dump());
+					auto val = it.value().dump();
+
+					if(it.value().is_string())
+					{
+						size_t strpos = 0;
+						const std::string from = R"(")";
+
+						while ((strpos = val.find(from, strpos)) != std::string::npos)
+						{
+							val.replace(strpos, from.length(), "");
+							strpos += from.length();
+						}
+					}
+
+					record.emplace_back(it.key(), val);
 					if (it.key() == "index")
 						pos = it.value();
 				}

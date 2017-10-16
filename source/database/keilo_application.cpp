@@ -74,18 +74,7 @@ std::string keilo_application::export_database(const std::string database_name, 
 					if (instance.second[0] >= '0' && instance.second[0] <= '9')
 						rc[instance.first] = atoi(instance.second.c_str());
 					else
-					{
-						size_t pos = 0;
-						const std::string from = R"(")";
-
-						while ((pos = instance.second.find(from, pos)) != std::string::npos)
-						{
-							instance.second.replace(pos, from.length(), "");
-							pos += from.length();
-						}
-
 						rc[instance.first] = instance.second;
-					}
 				}
 				rc_arr += rc;
 			}
