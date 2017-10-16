@@ -252,61 +252,61 @@ void keilo_server::process_client(client& client, keilo_database** database, kei
 
 std::string keilo_server::process_message(std::string message, keilo_database** database, keilo_table** table)
 {
-	std::stringstream result;
+	std::string result;
 	size_t pos;
 
 	if (message.find(create_) != std::string::npos)
 	{
 		if (pos = message.find(database_); pos != std::string::npos)
-			result << create_database(message, pos + database_.length());
+			result = create_database(message, pos + database_.length());
 		else if (pos = message.find(table_); pos != std::string::npos)
-			result << create_table(message, pos + table_.length(), database);
+			result = create_table(message, pos + table_.length(), database);
 		else
-			result << "Unknown command.";
+			result = "Unknown command.";
 	}
 	else if (message.find(select_) != std::string::npos)
 	{
 		if (pos = message.find(database_); pos != std::string::npos)
-			result << select_database(message, pos + database_.length(), database);
+			result = select_database(message, pos + database_.length(), database);
 		else if (pos = message.find(table_); pos != std::string::npos)
-			result << select_table(message, pos + table_.length(), database, table);
+			result = select_table(message, pos + table_.length(), database, table);
 		else if (pos = message.find(record_); pos != std::string::npos)
-			result << select_record(message, pos + record_.length(), table);
+			result = select_record(message, pos + record_.length(), table);
 		else
-			result << "Unknown command.";
+			result = "Unknown command.";
 	}
 	else if (pos = message.find(join_); pos != std::string::npos)
 	{
-		result << join_table(message, pos + join_.length(), database, table);
+		result = join_table(message, pos + join_.length(), database, table);
 	}
 	else if (pos = message.find(insert_); pos != std::string::npos)
 	{
-		result << insert_record(message, pos + insert_.length(), table);
+		result = insert_record(message, pos + insert_.length(), table);
 	}
 	else if (pos = message.find(update_); pos != std::string::npos)
 	{
-		result << update_record(message, pos + update_.length(), table);
+		result = update_record(message, pos + update_.length(), table);
 	}
 	else if (pos = message.find(remove_); pos != std::string::npos)
 	{
-		result << remove_record(message, pos + remove_.length(), table);
+		result = remove_record(message, pos + remove_.length(), table);
 	}
 	else if (pos = message.find(drop_); pos != std::string::npos)
 	{
-		result << drop_table(message, pos + drop_.length(), database, table);
+		result = drop_table(message, pos + drop_.length(), database, table);
 	}
 	else if (pos = message.find(import_file_); pos != std::string::npos)
 	{
-		result << import_database(message, pos + import_file_.length());
+		result = import_database(message, pos + import_file_.length());
 	}
 	else if (pos = message.find(export_file_); pos != std::string::npos)
 	{
-		result << export_database(message, pos + export_file_.length(), database);
+		result = export_database(message, pos + export_file_.length(), database);
 	}
 	else
-		result << "Unknown command.";
+		result = "Unknown command.";
 
-	return result.str();
+	return result;
 }
 
 void keilo_server::disconnect_client(const SOCKADDR_IN address)
