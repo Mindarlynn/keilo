@@ -89,3 +89,24 @@ keilo database use <b><i>*.json</i></b> as an extension.
     ]
 }
 ```
+## user authentication
+### server
+Server have to import user file to use authentication. 
+#### example format 
+```json
+{
+    "user_database" : [
+        {
+            "name" : "user",
+            "value" : [
+                {
+                    "ID" : "root",
+                    "Password" : "root"
+                }
+            ]
+        }
+    ]
+}
+```
+### client
+Client have to communicate about login before execute commands and receive result of login.
