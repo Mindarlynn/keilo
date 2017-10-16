@@ -2,9 +2,12 @@
 #include "keilo_core.hpp"
 
 #include <utility>
+#include <experimental/filesystem>
+#include <memory>
 #include <thread>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <exception>
 #include <winsock2.h>
@@ -35,6 +38,14 @@ keilo_server::keilo_server(const int port) :
 		throw std::exception(std::to_string(WSAGetLastError()).c_str());
 
 	std::cout << "Successfully initialized winsock2." << std::endl;
+
+	
+	const auto file_name = std::experimental::filesystem::current_path().generic_string() + "/user/user_example.json";
+	std::ifstream file(file_name);
+	if (!file)
+		throw std::exception((R"(File ")" + file_name + R"(" dose not exist.)").c_str());
+	
+	user_database_ = std::make_unique<keilo_database>(keilo_database(file));
 }
 
 keilo_server::~keilo_server()
@@ -148,6 +159,50 @@ void keilo_server::accept_client()
 
 		const std::string addr = inet_ntoa(client.address.sin_addr);
 		push_output("[" + addr + ":" + std::to_string(client.address.sin_port) + "] connected.");
+
+		char user_info[2][1024] = { "ID : ", "Password : " };
+		for(auto i = 0; i < 2; ++i )
+		{
+			if (send(client.socket, user_info[i], strlen(user_info[i]), 0) == SOCKET_ERROR)
+				throw std::exception(std::to_string(WSAGetLastError()).c_str());
+
+			const auto received = recv(client.socket, user_info[i], 1024, 0);
+			received == 0 ? closesocket(client.socket) : user_info[i][received] = 0;
+		}
+
+		auto has_user = false;
+
+		for(const auto& record : user_database_->select_table("user")->get_records())
+		{
+			auto has_id = false;
+			auto has_pw = false;
+			for(const auto& instance : record)
+			{
+				if (instance.first == "ID" && instance.second == user_info[0])
+					has_id = true;
+				if (instance.first == "Password" && instance.second == user_info[1])
+					has_pw = true;
+			}
+			if(has_id && has_pw)
+			{
+				has_user = true;
+				break;
+			}
+		}
+		if(!has_user)
+		{
+			const auto message = R"(User ")" + std::string(user_info[0]) + R"(" is not member of this server.)";
+			if (send(client.socket, message.c_str(), message.length(), 0) == SOCKET_ERROR)
+				throw std::exception(std::to_string(WSAGetLastError()).c_str());
+			closesocket(client.socket);
+			continue;
+		}
+		else
+		{
+			const std::string message = "Success";
+			if (send(client.socket, message.c_str(), message.length(), 0) == SOCKET_ERROR)
+				throw std::exception(std::to_string(WSAGetLastError()).c_str());
+		}
 
 		clients_.push_back(client);
 

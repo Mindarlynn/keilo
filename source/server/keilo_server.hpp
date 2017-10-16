@@ -253,6 +253,10 @@ private:
 #pragma endregion
 
 	/**
+	 * \brief Database that has user informations.
+	 */
+	std::unique_ptr<keilo_database> user_database_;
+	/**
 	 * \brief Whether program is running.
 	 */
 	std::atomic<bool> is_running_ = false;
