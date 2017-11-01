@@ -68,9 +68,10 @@ private:
 
 	/**
 	 * \brief Disconnect client.
-	 * \param address Address of client that will be disconnected from server.
+	 * \param client client that will be disconnected from server.
+	 * \param exist_in_list whether client exist in client list.
 	 */
-	void disconnect_client(const SOCKADDR_IN address);
+	void disconnect_client(const client client, const bool exist_in_list = true);
 
 	/**
 	 * \brief 

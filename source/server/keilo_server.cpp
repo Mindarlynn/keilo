@@ -337,21 +337,24 @@ std::string keilo_server::process_message(std::string message, keilo_database** 
 	return result;
 }
 
-void keilo_server::disconnect_client(const SOCKADDR_IN address)
+void keilo_server::disconnect_client(const client client, const bool exist_in_list)
 {
-	auto client = clients_.end();
 
-	for (auto it = clients_.begin(); it != clients_.end(); ++it)
-		if (it->address == address)
-		{
-			client = it;
-			break;
-		}
+	if (found == clients_.end())
+		if (!exist_in_list)
+			closesocket(found->socket);
+		else
+			throw std::exception("[disconnect_client] Could not find client.");
+	else
+	{
+		clients_.erase(found);
 
-	if (client == clients_.end())
-		throw std::exception("[disconnect_client] Could not find client.");
 		printf(('[' + std::string(inet_ntoa(found->address.sin_addr)) + ':' + std::to_string(found->address.sin_port) +
 			"] disconnected.\n").c_str());
+
+		closesocket(found->socket);
+	}
+}
 
 std::string keilo_server::read(const client client, const bool exist_in_list)
 {
@@ -375,8 +378,6 @@ void keilo_server::write(const client client, const std::string data, const bool
 	}
 }
 
-	closesocket(client->socket);
-	clients_.erase(client);
 }
 
 std::string keilo_server::create_database(std::string message, size_t pos) const
