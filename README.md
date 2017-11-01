@@ -6,10 +6,15 @@ Tested platform : Windows10 ver 1709(build 16299.15), msvc 14.1
 ## used libraries
 ### json
 https://github.com/nlohmann/json
+### cryptoPP
+https://www.cryptopp.com/
 
 ## build
-### 1. import codes directly to project
-### 2. compile codes to static library file.
+### compile codes to static library file.
+
+## networking
+### crypted texts
+while communicate with client, we support that encrypting plain text with rsa algorithme. to use encrypting, you have to make rsa keys and import to authentification server. database server and client will request encrypting/decrypting plain text/encrypted text to key server when database server or client server wants to communicate each other.
 
 ## commands
 ### create
@@ -91,7 +96,7 @@ keilo database use <b><i>*.json</i></b> as an extension.
 ```
 ## user authentication
 ### server
-Server have to import user file to use authentication. 
+server have to import user file to use authentication. 
 #### example format 
 ```json
 {
@@ -109,4 +114,4 @@ Server have to import user file to use authentication.
 }
 ```
 ### client
-Client have to communicate about login before execute commands and receive result of login.
+client have to communicate about login before execute commands and receive result of login.
