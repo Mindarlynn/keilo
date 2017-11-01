@@ -90,6 +90,13 @@ private:
 	void write(const client client, const std::string data, const bool exist_in_list = true);
 
 	/**
+	 * \brief 
+	 * \param client check this parameter whether exist in client list.
+	 * \return iterator of list
+	 */
+	std::list<client>::iterator find_client(const client client);
+
+	/**
 	 * \brief Thread that accpet clients.
 	 */
 	std::thread accept_thread_;

@@ -234,22 +234,14 @@ void keilo_server::accept_client()
 
 		clients_.push_back(client);
 
-		client_processes_.emplace_back([&, address = client.address]()
+		client_processes_.emplace_back([&, client]()
 		{
 			keilo_database* database = nullptr;
 			keilo_table* table = nullptr;
 
 			while (is_running_.load())
 			{
-				auto found = clients_.end();
-
-				for (auto it = clients_.begin(); it != clients_.end(); ++it)
-					if (it->address == address)
-					{
-						found = it;
-						break;
-					}
-
+				auto found = find_client(client);
 				if (found == clients_.end())
 					break;
 
@@ -339,6 +331,7 @@ std::string keilo_server::process_message(std::string message, keilo_database** 
 
 void keilo_server::disconnect_client(const client client, const bool exist_in_list)
 {
+	const auto found = find_client(client);
 
 	if (found == clients_.end())
 		if (!exist_in_list)
@@ -378,6 +371,12 @@ void keilo_server::write(const client client, const std::string data, const bool
 	}
 }
 
+std::list<client>::iterator keilo_server::find_client(const client client)
+{
+	for (auto it = clients_.begin(); it != clients_.end(); ++it)
+		if (it->address == client.address)
+			return it;
+	return clients_.end();
 }
 
 std::string keilo_server::create_database(std::string message, size_t pos) const
