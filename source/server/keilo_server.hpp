@@ -64,7 +64,7 @@ private:
 	 * \param table Selected table.
 	 * \return result of processing command.
 	 */
-	std::string process_message(std::string message, keilo_database** database, keilo_table** table);
+	std::string process_message(std::string message, keilo_database*& database, keilo_table*& table);
 
 	/**
 	 * \brief Disconnect client.
@@ -149,7 +149,7 @@ private:
 	 * \param database Selected database will be assigned into this variable.
 	 * \return Result of selecting database
 	 */
-	std::string select_database(std::string message, size_t pos, keilo_database** database) const;
+	std::string select_database(std::string message, size_t pos, keilo_database*& database) const;
 
 	/**
 	 * \brief  Export database to file.
@@ -158,7 +158,7 @@ private:
 	 * \param database Selected database.
 	 * \return Result of exporting database
 	 */
-	std::string export_database(std::string message, size_t pos, keilo_database** database) const;
+	std::string export_database(std::string message, size_t pos, keilo_database*& database) const;
 
 	/**
 	 * \brief Import database from file.
@@ -175,7 +175,7 @@ private:
 	 * \param database Selected database.
 	 * \return Result of creating table.
 	 */
-	static std::string create_table(std::string message, size_t pos, keilo_database** database);
+	static std::string create_table(std::string message, size_t pos, keilo_database*& database);
 
 	/**
 	 * \brief Select table into the database.
@@ -185,7 +185,7 @@ private:
 	 * \param table Selected table will be assigned into this variable.
 	 * \return Result of selecting table
 	 */
-	static std::string select_table(std::string message, size_t pos, keilo_database** database, keilo_table** table);
+	static std::string select_table(std::string message, size_t pos, keilo_database*& database, keilo_table*& table);
 
 	/**
 	 * \brief Join table.
@@ -195,7 +195,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of joining tables
 	 */
-	std::string join_table(std::string message, size_t pos, keilo_database** database, keilo_table** table) const;
+	std::string join_table(std::string message, size_t pos, keilo_database*& database, keilo_table*& table) const;
 
 	/**
 	 * \brief Drop table.
@@ -205,7 +205,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of dropping table.
 	 */
-	static std::string drop_table(std::string message, size_t pos, keilo_database** database, keilo_table** table);
+	static std::string drop_table(std::string message, size_t pos, keilo_database*& database, keilo_table*& table);
 
 	/**
 	 * \brief Select records from table
@@ -214,7 +214,7 @@ private:
 	 * \param table Selected table.
 	 * \return Selected records.
 	 */
-	static std::string select_record(std::string message, size_t pos, keilo_table** table);
+	static std::string select_record(std::string message, size_t pos, keilo_table*& table);
 
 	/**
 	 * \brief Insert record into table.
@@ -223,7 +223,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of inserting record.
 	 */
-	static std::string insert_record(std::string message, size_t pos, keilo_table** table);
+	static std::string insert_record(std::string message, size_t pos, keilo_table*& table);
 
 	/**
 	 * \brief Update record that meets the condition.
@@ -232,7 +232,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of updating record.
 	 */
-	static std::string update_record(std::string message, size_t pos, keilo_table** table);
+	static std::string update_record(std::string message, size_t pos, keilo_table*& table);
 
 	/**
 	 * \brief Remove record that meets the condition.
@@ -241,7 +241,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of removing record.
 	 */
-	static std::string remove_record(std::string message, size_t pos, keilo_table** table);
+	static std::string remove_record(std::string message, size_t pos, keilo_table*& table);
 #pragma endregion
 
 #pragma region Command
