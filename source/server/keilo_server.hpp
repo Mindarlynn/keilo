@@ -8,6 +8,7 @@
 #include <atomic>
 #include <mutex>
 
+#define SECURE_NETWORK
 
 class keilo_server
 {
@@ -30,8 +31,17 @@ public:
 #pragma endregion
 
 private:
+#ifdef SECURE_NETWORK
+	SOCKET keyserver_;
+	sockaddr_in keyserver_addr_;
 
+	void connect_to_key_server(char* address, int port);
+	std::string request_encrypt(const std::string data) const;
+	std::string request_decrypt(const std::string data) const;
 
+	static std::string read(const SOCKET socket);
+	static void write(const SOCKET socket, const std::string data);
+#endif
 
 #pragma region Networking
 	/**

@@ -43,10 +43,18 @@ keilo_server::keilo_server(const int port) : accept_thread_(std::thread(&keilo_s
 		throw std::exception((R"(File ")" + file_name + R"(" dose not exist.)").c_str());
 
 	user_database_ = std::make_unique<keilo_database>(keilo_database(file));
+
+#ifdef SECURE_NETWORK
+	keyserver_ = 0;
+	connect_to_key_server("127.0.0.1", 6062);
+#endif
 }
 
 keilo_server::~keilo_server()
 {
+#ifdef SECURE_NETWORK
+	closesocket(keyserver_);
+#endif
 	if (is_running_.load())
 		is_running_ = false;
 	if (accept_thread_.joinable())
@@ -98,34 +106,85 @@ void keilo_server::run()
 		printf((output + '\n').c_str());
 
 		std::cout << select_status.str();
+#ifdef SECURE_NETWORK
+void keilo_server::connect_to_key_server(char* address, const int port)
+{
+	if (keyserver_ = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); keyserver_ == INVALID_SOCKET)
+		throw std::exception("key server socket error");
+
+	ZeroMemory(&keyserver_addr_, sizeof sockaddr_in);
+	
+	keyserver_addr_.sin_family = AF_INET;
+	keyserver_addr_.sin_addr.S_un.S_addr = inet_addr(address);
+	keyserver_addr_.sin_port = htons(port);
+
+	if (connect(keyserver_, reinterpret_cast<const sockaddr*>(&keyserver_addr_), sizeof keyserver_addr_) == INVALID_SOCKET)
+		throw std::exception("failed to connect to key server");
+	printf("Successfully connected to key server.\n");
+}
 
 		if (getline(std::cin, input); input == "exit")
 		{
 			is_running_ = false;
 			break;
 		}
+std::string keilo_server::request_encrypt(const std::string data) const
+{
+	// auto
+	const std::string buffers[] = { "sen" , "BE71D264-99CA-4DFB-8FB2-F56AA79301A9" };
+	for (const auto& buffer : buffers)
+		write(keyserver_, buffer);
 
 	}
 }
  */
+	if (const auto receive = read(keyserver_); receive == "fail")
+		throw std::exception("auth failed");
 
+	// plain text
+	write(keyserver_, data);
 
 std::string keilo_server::import_file(const std::string file_name, const bool ps)
+	// encrypted text
+	return read(keyserver_);
+}
+
+std::string keilo_server::request_decrypt(const std::string data) const
 {
 	const auto output = application_->import_file(file_name);
 	if (ps)
 	{
 	}
 	return output;
+	const std::string buffers[] = { "cde", data };
+	for (const auto& buffer : buffers)
+		write(keyserver_, buffer);
+	
+	return read(keyserver_);
 }
 
+std::string keilo_server::read(const SOCKET socket)
 {
+	char buffer[512];
+	const auto received = recv(socket, buffer, 512, 0);
+	if(received <= 0)
 	{
+		closesocket(socket);
+		throw std::exception("read failed");
+	}
+	buffer[received] = 0;
+	return buffer;
+}
+
+void keilo_server::write(const SOCKET socket, const std::string data)
+{
+	if(send(socket, data.c_str(), data.length(), 0) == SOCKET_ERROR)
+	{
+		closesocket(socket);
+		throw std::exception("write failed");
 	}
 }
-
-{
-}
+#endif
 
 void keilo_server::accept_client()
 {
@@ -143,11 +202,15 @@ void keilo_server::accept_client()
 		char user_info[2][1024] = { "ID : ", "Password : " };
 		for(auto i = 0; i < 2; ++i )
 		{
-			if (send(client.socket, user_info[i], strlen(user_info[i]), 0) == SOCKET_ERROR)
-				throw std::exception(std::to_string(WSAGetLastError()).c_str());
 
-			const auto received = recv(client.socket, user_info[i], 1024, 0);
-			received == 0 ? closesocket(client.socket) : user_info[i][received] = 0;
+#ifdef SECURE_NETWORK
+			user_info[i] = request_encrypt(user_info[i]);
+#endif
+
+#ifdef SECURE_NETWORK
+			received = request_decrypt(received);
+#endif
+
 		}
 
 		auto has_user = false;
@@ -174,6 +237,11 @@ void keilo_server::accept_client()
 			const auto message = R"(User ")" + std::string(user_info[0]) + R"(" is not member of this server.)";
 			if (send(client.socket, message.c_str(), message.length(), 0) == SOCKET_ERROR)
 				throw std::exception(std::to_string(WSAGetLastError()).c_str());
+
+#ifdef SECURE_NETWORK
+			request_encrypt(message);
+#endif
+
 			closesocket(client.socket);
 			continue;
 		}
@@ -183,6 +251,9 @@ void keilo_server::accept_client()
 			if (send(client.socket, message.c_str(), message.length(), 0) == SOCKET_ERROR)
 				throw std::exception(std::to_string(WSAGetLastError()).c_str());
 		}
+#ifdef SECURE_NETWORK
+		message = request_encrypt(message);
+#endif
 
 		clients_.push_back(client);
 
@@ -220,6 +291,9 @@ void keilo_server::process_client(client& client, keilo_database** database, kei
 	{
 		buffer[received] = 0;
 
+#ifdef SECURE_NETWORK
+	received = request_decrypt(received);
+#endif
 	printf(('[' + std::string(inet_ntoa(client.address.sin_addr)) + ':' + std::to_string(client.address.sin_port) + "] " +
 		received + '\n').c_str());
 
@@ -227,6 +301,9 @@ void keilo_server::process_client(client& client, keilo_database** database, kei
 		if (send(client.socket, processed_message.c_str(), static_cast<int>(processed_message.length()), 0) == SOCKET_ERROR)
 			throw std::exception(std::to_string(WSAGetLastError()).c_str());
 	}
+#ifdef SECURE_NETWORK
+	processed_message = request_encrypt(processed_message);
+#endif
 }
 
 std::string keilo_server::process_message(std::string message, keilo_database** database, keilo_table** table)
