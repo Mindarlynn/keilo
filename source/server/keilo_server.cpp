@@ -651,7 +651,7 @@ std::string keilo_server::select_record(std::string message, size_t pos, keilo_t
 	std::stringstream identifier;
 	while (pos < message.length())
 	{
-		if (message[pos] == ':')
+		if (message[pos] == ':' || message[pos] == ';')
 			break;
 
 		if (message[pos] == ' ')
