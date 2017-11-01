@@ -174,7 +174,7 @@ void keilo_server::accept_client()
 		const std::string addr = inet_ntoa(client.address.sin_addr);
 		printf(("[" + addr + ":" + std::to_string(client.address.sin_port) + "] connected.\n").c_str());
 
-		char user_info[2][1024] = { "ID : ", "Password : " };
+		std::string user_info[] = { "ID : ", "Password : " };
 		for(auto i = 0; i < 2; ++i )
 		{
 
