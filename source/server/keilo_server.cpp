@@ -63,7 +63,7 @@ keilo_server::~keilo_server()
 		SOCKADDR_IN addr;
 		addr.sin_family = AF_INET;
 		addr.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
-		addr.sin_port = htons(6060);
+		addr.sin_port = htons(port_);
 		connect(tmp, reinterpret_cast<SOCKADDR*>(&addr), sizeof addr);
 		closesocket(tmp);
 		accept_thread_.join();
