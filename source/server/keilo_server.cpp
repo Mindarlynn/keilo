@@ -85,9 +85,15 @@ void keilo_server::run()
 	while (is_running_.load());
 }
 
+std::string keilo_server::import_file(const std::string file_name, const bool ps) const
 {
+	const auto output = application_->import_file(file_name);
+	if (ps)
 	{
 		printf((output + '\n').c_str());
+	}
+	return output;
+}
 
 #ifdef SECURE_NETWORK
 void keilo_server::connect_to_key_server(char* address, const int port)
@@ -119,18 +125,12 @@ std::string keilo_server::request_encrypt(const std::string data) const
 	// plain text
 	write(keyserver_, data);
 
-std::string keilo_server::import_file(const std::string file_name, const bool ps)
 	// encrypted text
 	return read(keyserver_);
 }
 
 std::string keilo_server::request_decrypt(const std::string data) const
 {
-	const auto output = application_->import_file(file_name);
-	if (ps)
-	{
-	}
-	return output;
 	const std::string buffers[] = { "cde", data };
 	for (const auto& buffer : buffers)
 		write(keyserver_, buffer);

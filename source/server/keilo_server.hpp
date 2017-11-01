@@ -55,7 +55,7 @@ private:
 	 * \param database Selected database.
 	 * \param table Selected table.
 	 */
-	void process_client(client& client, keilo_database** database, keilo_table** table);
+	void process_client(client& client, keilo_database*& database, keilo_table*& table);
 
 	/**
 	 * \brief Process commands that client sent.
