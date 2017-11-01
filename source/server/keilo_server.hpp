@@ -27,7 +27,7 @@ public:
 	 * \param ps Whether to output.
 	 * \return Result of importing file.
 	 */
-	std::string import_file(std::string file_name, bool ps = true);
+	std::string import_file(std::string file_name, bool ps = true) const;
 #pragma endregion
 
 private:

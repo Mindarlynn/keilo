@@ -85,27 +85,10 @@ void keilo_server::run()
 	while (is_running_.load());
 }
 
-/*
- void keilo_server::run_local()
 {
-	keilo_database* selected_database = nullptr;
-	keilo_table* selected_table = nullptr;
-	std::string input;
-	while (is_running_.load())
 	{
-		std::stringstream select_status;
-		if (selected_database)
-		{
-			select_status << "[" << selected_database->get_name();
-			if (selected_table)
-				select_status << "_" << selected_table->get_name();
-			select_status << "]> ";
-		}
-		else
-			select_status << "[none]> ";
 		printf((output + '\n').c_str());
 
-		std::cout << select_status.str();
 #ifdef SECURE_NETWORK
 void keilo_server::connect_to_key_server(char* address, const int port)
 {
@@ -123,11 +106,6 @@ void keilo_server::connect_to_key_server(char* address, const int port)
 	printf("Successfully connected to key server.\n");
 }
 
-		if (getline(std::cin, input); input == "exit")
-		{
-			is_running_ = false;
-			break;
-		}
 std::string keilo_server::request_encrypt(const std::string data) const
 {
 	// auto
@@ -135,9 +113,6 @@ std::string keilo_server::request_encrypt(const std::string data) const
 	for (const auto& buffer : buffers)
 		write(keyserver_, buffer);
 
-	}
-}
- */
 	if (const auto receive = read(keyserver_); receive == "fail")
 		throw std::exception("auth failed");
 
