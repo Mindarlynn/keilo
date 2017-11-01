@@ -182,10 +182,14 @@ void keilo_server::accept_client()
 			user_info[i] = request_encrypt(user_info[i]);
 #endif
 
+			write(client, user_info[i], false);
+			auto received = read(client, false);
+
 #ifdef SECURE_NETWORK
 			received = request_decrypt(received);
 #endif
 
+			user_info[i] = received;
 		}
 
 		auto has_user = false;
@@ -210,25 +214,23 @@ void keilo_server::accept_client()
 		if(!has_user)
 		{
 			const auto message = R"(User ")" + std::string(user_info[0]) + R"(" is not member of this server.)";
-			if (send(client.socket, message.c_str(), message.length(), 0) == SOCKET_ERROR)
-				throw std::exception(std::to_string(WSAGetLastError()).c_str());
 
 #ifdef SECURE_NETWORK
 			request_encrypt(message);
 #endif
 
+			write(client, message, false);
 			closesocket(client.socket);
 			continue;
 		}
-		else
-		{
-			const std::string message = "Success";
-			if (send(client.socket, message.c_str(), message.length(), 0) == SOCKET_ERROR)
-				throw std::exception(std::to_string(WSAGetLastError()).c_str());
-		}
+
+		std::string message = "success";
+
 #ifdef SECURE_NETWORK
 		message = request_encrypt(message);
 #endif
+
+		write(client, message);
 
 		clients_.push_back(client);
 
@@ -259,12 +261,7 @@ void keilo_server::accept_client()
 
 void keilo_server::process_client(client& client, keilo_database** database, keilo_table** table)
 {
-	char buffer[1024];
-	if (const auto received = recv(client.socket, buffer, 1024, 0); received == 0)
-		disconnect_client(client.address);
-	else
-	{
-		buffer[received] = 0;
+	auto received = read(client);
 
 #ifdef SECURE_NETWORK
 	received = request_decrypt(received);
@@ -272,13 +269,13 @@ void keilo_server::process_client(client& client, keilo_database** database, kei
 	printf(('[' + std::string(inet_ntoa(client.address.sin_addr)) + ':' + std::to_string(client.address.sin_port) + "] " +
 		received + '\n').c_str());
 
-		auto processed_message = process_message(buffer, database, table);
-		if (send(client.socket, processed_message.c_str(), static_cast<int>(processed_message.length()), 0) == SOCKET_ERROR)
-			throw std::exception(std::to_string(WSAGetLastError()).c_str());
-	}
+	auto processed_message = process_message(received, database, table);
+
 #ifdef SECURE_NETWORK
 	processed_message = request_encrypt(processed_message);
 #endif
+
+	write(client, processed_message);
 }
 
 std::string keilo_server::process_message(std::string message, keilo_database** database, keilo_table** table)
@@ -356,6 +353,27 @@ void keilo_server::disconnect_client(const SOCKADDR_IN address)
 		printf(('[' + std::string(inet_ntoa(found->address.sin_addr)) + ':' + std::to_string(found->address.sin_port) +
 			"] disconnected.\n").c_str());
 
+std::string keilo_server::read(const client client, const bool exist_in_list)
+{
+	char buffer[4096];
+	const auto received = recv(client.socket, buffer, 4096, 0);
+	if(received <= 0)
+	{
+		disconnect_client(client, exist_in_list);
+		throw std::exception(std::to_string(WSAGetLastError()).c_str());
+	}
+	buffer[received] = 0;
+	return buffer;
+}
+
+void keilo_server::write(const client client, const std::string data, const bool exist_in_list)
+{
+	if(send(client.socket, data.c_str(), data.length(), 0) == SOCKET_ERROR)
+	{
+		disconnect_client(client, exist_in_list);
+		throw std::exception(std::to_string(WSAGetLastError()).c_str());
+	}
+}
 
 	closesocket(client->socket);
 	clients_.erase(client);

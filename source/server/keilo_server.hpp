@@ -73,6 +73,22 @@ private:
 	void disconnect_client(const SOCKADDR_IN address);
 
 	/**
+	 * \brief 
+	 * \param client client that will receive data from server.
+	 * \param exist_in_list whether client exist in client list.
+	 * \return 
+	 */
+	std::string read(const client client, const bool exist_in_list = true);
+
+	/**
+	 * \brief 
+	 * \param client client that will send data to server.
+	 * \param data data that will be sent.
+	 * \param exist_in_list whether client exist in client list.
+	 */
+	void write(const client client, const std::string data, const bool exist_in_list = true);
+
+	/**
 	 * \brief Thread that accpet clients.
 	 */
 	std::thread accept_thread_;
