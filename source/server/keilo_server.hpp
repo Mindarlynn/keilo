@@ -7,7 +7,6 @@
 #include <list>
 #include <atomic>
 #include <mutex>
-#include <queue>
 
 
 class keilo_server
@@ -31,33 +30,8 @@ public:
 #pragma endregion
 
 private:
-#pragma region Printing
-	/**
-	 * \brief `print_thread_` 's function. print messages in the `outputs_`.
-	 */
-	void print_output();
 
-	/**
-	 * \brief Push message into queue.
-	 * \param message Message that you want to put into the queue.
-	 */
-	void push_output(const std::string message);
 
-	/**
-	 * \brief Thread that prints messages was pushed into the queue.
-	 */
-	std::thread print_thread_;
-
-	/**
-	 * \brief Have messages that will be printed.
-	 */
-	std::queue<std::string> outputs_;
-
-	/**
-	 * \brief Mutex of queue `outputs_`.
-	 */
-	std::mutex output_mutex_;
-#pragma endregion
 
 #pragma region Networking
 	/**

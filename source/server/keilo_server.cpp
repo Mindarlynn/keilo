@@ -5,7 +5,6 @@
 #include <experimental/filesystem>
 #include <memory>
 #include <thread>
-#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <string>
@@ -14,13 +13,11 @@
 
 #pragma warning(disable:4996)
 
-keilo_server::keilo_server(const int port) :
-	print_thread_(std::thread(&keilo_server::print_output, this)),
-	accept_thread_(std::thread(&keilo_server::accept_client, this)),
-	clients_(std::list<client>()),
-	port_(port),
-	client_processes_(std::list<std::thread>()),
-	application_(new keilo_application())
+keilo_server::keilo_server(const int port) : accept_thread_(std::thread(&keilo_server::accept_client, this)),
+                                             clients_(std::list<client>()),
+                                             port_(port),
+                                             client_processes_(std::list<std::thread>()),
+                                             application_(new keilo_application())
 {
 	if (WSAStartup(MAKEWORD(2, 2), &wsa_) != 0)
 		throw std::exception(std::to_string(WSAGetLastError()).c_str());
@@ -37,14 +34,14 @@ keilo_server::keilo_server(const int port) :
 	if (bind(socket_, reinterpret_cast<SOCKADDR*>(&address_), sizeof address_) == SOCKET_ERROR)
 		throw std::exception(std::to_string(WSAGetLastError()).c_str());
 
-	std::cout << "Successfully initialized winsock2." << std::endl;
+	printf("Successfully initialized winsock2.\n");
 
-	
+
 	const auto file_name = std::experimental::filesystem::current_path().generic_string() + "/user/user_example.json";
 	std::ifstream file(file_name);
 	if (!file)
 		throw std::exception((R"(File ")" + file_name + R"(" dose not exist.)").c_str());
-	
+
 	user_database_ = std::make_unique<keilo_database>(keilo_database(file));
 }
 
@@ -63,8 +60,6 @@ keilo_server::~keilo_server()
 		closesocket(tmp);
 		accept_thread_.join();
 	}
-	if (print_thread_.joinable())
-		print_thread_.join();
 	for (auto& processes : client_processes_)
 		if (processes.joinable())
 			processes.join();
@@ -78,7 +73,7 @@ void keilo_server::run()
 	if (listen(socket_, 10) == SOCKET_ERROR)
 		throw std::exception(std::to_string(WSAGetLastError()).c_str());
 	is_running_ = true;
-	push_output("Successfully started server.");
+	printf("Successfully started server.\n");
 	while (is_running_.load());
 }
 
@@ -100,6 +95,7 @@ void keilo_server::run()
 		}
 		else
 			select_status << "[none]> ";
+		printf((output + '\n').c_str());
 
 		std::cout << select_status.str();
 
@@ -109,7 +105,6 @@ void keilo_server::run()
 			break;
 		}
 
-		push_output(process_message(input, &selected_database, &selected_table));
 	}
 }
  */
@@ -120,31 +115,16 @@ std::string keilo_server::import_file(const std::string file_name, const bool ps
 	const auto output = application_->import_file(file_name);
 	if (ps)
 	{
-		push_output(output);
 	}
 	return output;
 }
 
-void keilo_server::print_output()
 {
-	while (!is_running_.load());
-	while (is_running_.load())
 	{
-		output_mutex_.lock();
-		while (outputs_.size() > 0)
-		{
-			std::cout << outputs_.front() << std::endl;
-			outputs_.pop();
-		}
-		output_mutex_.unlock();
 	}
 }
 
-void keilo_server::push_output(const std::string message)
 {
-	output_mutex_.lock();
-	outputs_.push(message);
-	output_mutex_.unlock();
 }
 
 void keilo_server::accept_client()
@@ -158,7 +138,7 @@ void keilo_server::accept_client()
 		client.socket = accept(socket_, reinterpret_cast<SOCKADDR*>(&client.address), &addrlen);
 
 		const std::string addr = inet_ntoa(client.address.sin_addr);
-		push_output("[" + addr + ":" + std::to_string(client.address.sin_port) + "] connected.");
+		printf(("[" + addr + ":" + std::to_string(client.address.sin_port) + "] connected.\n").c_str());
 
 		char user_info[2][1024] = { "ID : ", "Password : " };
 		for(auto i = 0; i < 2; ++i )
@@ -240,9 +220,8 @@ void keilo_server::process_client(client& client, keilo_database** database, kei
 	{
 		buffer[received] = 0;
 
-		push_output(
-			"[" + std::string(inet_ntoa(client.address.sin_addr)) + ":" + std::to_string(client.address.sin_port) + "] " +
-			std::string(buffer));
+	printf(('[' + std::string(inet_ntoa(client.address.sin_addr)) + ':' + std::to_string(client.address.sin_port) + "] " +
+		received + '\n').c_str());
 
 		auto processed_message = process_message(buffer, database, table);
 		if (send(client.socket, processed_message.c_str(), static_cast<int>(processed_message.length()), 0) == SOCKET_ERROR)
@@ -322,10 +301,9 @@ void keilo_server::disconnect_client(const SOCKADDR_IN address)
 
 	if (client == clients_.end())
 		throw std::exception("[disconnect_client] Could not find client.");
+		printf(('[' + std::string(inet_ntoa(found->address.sin_addr)) + ':' + std::to_string(found->address.sin_port) +
+			"] disconnected.\n").c_str());
 
-	push_output(
-		('[' + std::string(inet_ntoa(client->address.sin_addr)) + ':' + std::to_string(client->address.sin_port) +
-			"] disconnected.").c_str());
 
 	closesocket(client->socket);
 	clients_.erase(client);
