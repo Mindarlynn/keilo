@@ -2,7 +2,7 @@
 #include "keilo_database.hpp"
 #include "json.hpp"
 
-#include <experimental/filesystem>
+#include <filesystem>
 #include <sstream>
 #include <fstream>
 #include <mutex>
@@ -17,7 +17,6 @@ std::string keilo_application::create_database(const std::string name)
 	for (const auto& database : databases_)
 		if (database.get_name() == name)
 			return R"(Database that was named ")" + name + R"(" already exist in application.)";
-
 	databases_.emplace_back(name);
 
 	return R"(Successfully create database that was named ")" + name + R"(".)";
@@ -60,26 +59,26 @@ std::string keilo_application::export_database(const std::string database_name, 
 	try
 	{
 		json js;
-		js[database->get_name()] = json::array();
+		js[database_name] = json::array();
 		for (auto& table : database->get_tables())
 		{
 			json tb;
 			tb["name"] = table.get_name();
-			json rc_arr = json::array();
+			auto rc_arr = json::array();
 			for (auto& record : table.get_records())
 			{
 				json rc;
 				for (auto& instance : record)
 				{
 					if (instance.second[0] >= '0' && instance.second[0] <= '9')
-						rc[instance.first] = atoi(instance.second.c_str());
+						rc[instance.first] = stoi(instance.second);
 					else
 						rc[instance.first] = instance.second;
 				}
 				rc_arr += rc;
 			}
 			tb["value"] = rc_arr;
-			js[database->get_name()] += tb;
+			js[database_name] += tb;
 		}
 
 		std::stringstream file_path;
