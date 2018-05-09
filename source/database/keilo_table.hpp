@@ -25,7 +25,7 @@ public:
 	 * \param where Instance that record has.
 	 * \return Selected record.
 	 */
-	keilo_record select_record(keilo_instance where);
+	keilo_record* select_record(keilo_instance where);
 
 	/**
 	 * \brief Insert record into the table.
@@ -59,7 +59,7 @@ public:
 	 * \brief Get Count of records.
 	 * \return Count of records.
 	 */
-	size_t count();
+	u_int count();
 
 	/**
 	 * \brief Get Table's name

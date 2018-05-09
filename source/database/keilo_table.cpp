@@ -2,7 +2,7 @@
 
 #include <mutex>
 
-keilo_table::keilo_table(const std::string name) : name_(name), records_(std::list<keilo_record>())
+keilo_table::keilo_table(const std::string name) : name_(name), records_()
 {
 }
 
@@ -16,8 +16,8 @@ keilo_table::keilo_table(const keilo_table& other) : name_(other.name_), records
 
 keilo_table keilo_table::join(keilo_table* other)
 {
-	auto joined_table{get_records()};
-	auto other_table = other->get_records();
+	auto joined_table{ get_records() };
+	auto other_table{ other->get_records() };
 
 	for (auto& i_record : joined_table)
 	{
@@ -46,15 +46,15 @@ keilo_table keilo_table::join(keilo_table* other)
 	return keilo_table(get_name() + "+" + other->get_name(), joined_table);
 }
 
-keilo_record keilo_table::select_record(const keilo_instance where)
+keilo_record* keilo_table::select_record(const keilo_instance where)
 {
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 
 	for (auto record : records_)
 		for (const auto instance : record)
 			if (instance == where)
-				return record;
-	return keilo_record();
+				return &record;
+	return nullptr;
 }
 
 std::string keilo_table::insert_record(keilo_record& record)
@@ -160,7 +160,7 @@ std::list<keilo_record> keilo_table::get_records()
 	return records_;
 }
 
-size_t keilo_table::count()
+u_int keilo_table::count()
 {
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 	return records_.size();
