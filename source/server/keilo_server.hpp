@@ -1,61 +1,54 @@
 #pragma once
 
 #include "keilo_application.hpp"
-#include "keilo_core.hpp"
 
+#include <tcp_socket.hpp>
 #include <memory>
 #include <list>
 #include <atomic>
 #include <mutex>
 
-#define SECURE_NETWORK
+#pragma region Command
+	#define CREATE			"create"
+	#define SELECT			"select"
+	#define JOIN			"join"
+	#define INSERT			"insert"
+	#define UPDATE			"update"
+	#define REMOVE			"remove"
+	#define DROP			"drop"
+	#define EXPORT_FILE		"export"
+	#define IMPORT_FILE		"import"
+	#define CLEAR			"clear"
+	#define DATABASE		"database"
+	#define TABLE			"table"
+	#define RECORD			"record"
+#pragma endregion
 
 class keilo_server
 {
 public:
 
-	explicit keilo_server(int port);
+	explicit keilo_server(const int port);
 	~keilo_server();
 
 #pragma region User Accessable Functions
 	void run();
+	void import_file(const std::string file_name) const;
 	//void run_local();
-
-	/**
-	 * \brief Import database file to server.
-	 * \param file_name Name of database file.
-	 * \param ps Whether to output.
-	 * \return Result of importing file.
-	 */
-	std::string import_file(std::string file_name, bool ps = true) const;
 #pragma endregion
 
-private:
-#ifdef SECURE_NETWORK
-	SOCKET keyserver_;
-	sockaddr_in keyserver_addr_;
-
-	void connect_to_key_server(char* address, int port);
-	std::string request_encrypt(const std::string data) const;
-	std::string request_decrypt(const std::string data) const;
-
-	static std::string read(const SOCKET socket);
-	static void write(const SOCKET socket, const std::string data);
-#endif
-
 #pragma region Networking
-	/**
-	 * \brief `accept_thread_` 's function. Accept clients and process client's messages.
-	 */
-	void accept_client();
+
+	std::thread accept_thread;
+	std::vector<std::thread> login_threads;
 
 	/**
 	 * \brief Communicate with client.
-	 * \param client Client that accepted from `accept_thread_`.
+	 * \param client Client that accepted from `accept_thread`.
 	 * \param database Selected database.
 	 * \param table Selected table.
 	 */
-	void process_client(client& client, keilo_database*& database, keilo_table*& table);
+	void process_client(tcp_socket** client, keilo_database** database, keilo_table** table);
 
 	/**
 	 * \brief Process commands that client sent.
@@ -64,72 +57,35 @@ private:
 	 * \param table Selected table.
 	 * \return result of processing command.
 	 */
-	std::string process_message(std::string message, keilo_database*& database, keilo_table*& table);
-
-	/**
-	 * \brief Disconnect client.
-	 * \param client client that will be disconnected from server.
-	 * \param exist_in_list whether client exist in client list.
-	 */
-	void disconnect_client(const client client, const bool exist_in_list = true);
-
-	/**
-	 * \brief 
-	 * \param client client that will receive data from server.
-	 * \param exist_in_list whether client exist in client list.
-	 * \return 
-	 */
-	std::string read(const client client, const bool exist_in_list = true);
-
-	/**
-	 * \brief 
-	 * \param client client that will send data to server.
-	 * \param data data that will be sent.
-	 * \param exist_in_list whether client exist in client list.
-	 */
-	void write(const client client, const std::string data, const bool exist_in_list = true);
+	std::string process_message(std::string message, keilo_database** database, keilo_table** table) const;
 
 	/**
 	 * \brief 
 	 * \param client check this parameter whether exist in client list.
 	 * \return iterator of list
 	 */
-	std::list<client>::iterator find_client(const client client);
-
-	/**
-	 * \brief Thread that accpet clients.
-	 */
-	std::thread accept_thread_;
+	std::list<tcp_socket*>::iterator find_client(tcp_socket*const client);
 
 	/**
 	 * \brief List of clients.
 	 */
-	std::list<client> clients_;
+	std::list<tcp_socket*> clients;
 
 	/**
-	 * \brief Server Socket(TCP).
-	 */
-	SOCKET socket_;
-
-	/**
-	 * \brief Error handling variable that Windows support.
-	 */
-	WSADATA wsa_;
-
-	/**
-	 * \brief Address of server.
-	 */
-	SOCKADDR_IN address_;
-
-	/**
-	* \brief Port number of server.
+	* \brief Server Socket(TCP).
 	*/
-	int port_;
+	tcp_socket* socket;
+
+	/**
+	* \brief Error handling variable that Windows support.
+	*/
+	WSADATA wsa;
+	int res_wsa;
 
 	/**
 	 * \brief List of clients that is communicating with server.
 	 */
-	std::list<std::thread> client_processes_;
+	std::list<std::thread> client_processes;
 #pragma endregion
 
 
@@ -140,7 +96,7 @@ private:
 	 * \param pos Iterator's position.
 	 * \return Result of creating database
 	 */
-	std::string create_database(std::string message, size_t pos) const;
+	std::string create_database(std::string message, u_int pos) const;
 
 	/**
 	 * \brief Select database.
@@ -149,7 +105,7 @@ private:
 	 * \param database Selected database will be assigned into this variable.
 	 * \return Result of selecting database
 	 */
-	std::string select_database(std::string message, size_t pos, keilo_database*& database) const;
+	std::string select_database(std::string message, u_int pos, keilo_database** database) const;
 
 	/**
 	 * \brief  Export database to file.
@@ -158,7 +114,7 @@ private:
 	 * \param database Selected database.
 	 * \return Result of exporting database
 	 */
-	std::string export_database(std::string message, size_t pos, keilo_database*& database) const;
+	std::string export_database(std::string message, u_int pos, keilo_database** database) const;
 
 	/**
 	 * \brief Import database from file.
@@ -166,7 +122,7 @@ private:
 	 * \param pos Iterator's position.
 	 * \return Result of importing database.
 	 */
-	std::string import_database(std::string message, size_t pos);
+	std::string import_database(std::string message, u_int pos) const;
 
 	/**
 	 * \brief Create table into the database.
@@ -175,7 +131,7 @@ private:
 	 * \param database Selected database.
 	 * \return Result of creating table.
 	 */
-	static std::string create_table(std::string message, size_t pos, keilo_database*& database);
+	static std::string create_table(std::string message, u_int pos, keilo_database** database);
 
 	/**
 	 * \brief Select table into the database.
@@ -185,7 +141,7 @@ private:
 	 * \param table Selected table will be assigned into this variable.
 	 * \return Result of selecting table
 	 */
-	static std::string select_table(std::string message, size_t pos, keilo_database*& database, keilo_table*& table);
+	static std::string select_table(std::string message, u_int pos, keilo_database** database, keilo_table** table);
 
 	/**
 	 * \brief Join table.
@@ -195,7 +151,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of joining tables
 	 */
-	std::string join_table(std::string message, size_t pos, keilo_database*& database, keilo_table*& table) const;
+	std::string join_table(std::string message, u_int pos, keilo_database** database, keilo_table** table) const;
 
 	/**
 	 * \brief Drop table.
@@ -205,7 +161,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of dropping table.
 	 */
-	static std::string drop_table(std::string message, size_t pos, keilo_database*& database, keilo_table*& table);
+	static std::string drop_table(std::string message, u_int pos, keilo_database** database, keilo_table** table);
 
 	/**
 	 * \brief Select records from table
@@ -214,7 +170,7 @@ private:
 	 * \param table Selected table.
 	 * \return Selected records.
 	 */
-	static std::string select_record(std::string message, size_t pos, keilo_table*& table);
+	static std::string select_record(std::string message, u_int pos, keilo_table** table);
 
 	/**
 	 * \brief Insert record into table.
@@ -223,7 +179,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of inserting record.
 	 */
-	static std::string insert_record(std::string message, size_t pos, keilo_table*& table);
+	static std::string insert_record(std::string message, u_int pos, keilo_table** table);
 
 	/**
 	 * \brief Update record that meets the condition.
@@ -232,7 +188,7 @@ private:
 	 * \param table Selected table.
 	 * \return Result of updating record.
 	 */
-	static std::string update_record(std::string message, size_t pos, keilo_table*& table);
+	static std::string update_record(std::string message, u_int pos, keilo_table** table);
 
 	/**
 	 * \brief Remove record that meets the condition.
@@ -241,36 +197,20 @@ private:
 	 * \param table Selected table.
 	 * \return Result of removing record.
 	 */
-	static std::string remove_record(std::string message, size_t pos, keilo_table*& table);
-#pragma endregion
-
-#pragma region Command
-	const std::string create_ = "create";
-	const std::string select_ = "select";
-	const std::string join_ = "join";
-	const std::string insert_ = "insert";
-	const std::string update_ = "update";
-	const std::string remove_ = "remove";
-	const std::string drop_ = "drop";
-	const std::string export_file_ = "export";
-	const std::string import_file_ = "import";
-	const std::string clear_ = "clear";
-	const std::string database_ = "database";
-	const std::string table_ = "table";
-	const std::string record_ = "record";
+	static std::string remove_record(std::string message, u_int pos, keilo_table** table);
 #pragma endregion
 
 	/**
 	 * \brief Database that has user informations.
 	 */
-	std::unique_ptr<keilo_database> user_database_;
+	keilo_database* user_database;
 	/**
 	 * \brief Whether program is running.
 	 */
-	std::atomic<bool> is_running_ = false;
+	std::atomic<bool> is_running = false;
 
 	/**
 	 * \brief Core database.
 	 */
-	std::unique_ptr<keilo_application> application_;
+	std::unique_ptr<keilo_application> application;
 };
