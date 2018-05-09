@@ -48,6 +48,7 @@ keilo_server::~keilo_server()
 	if(accept_thread.joinable())
 	{
 		socket->stop();
+		delete socket;
 		accept_thread.join();
 	}
 	for(auto it = client_processes.begin(); it != client_processes.end(); ++it)
@@ -150,7 +151,7 @@ void keilo_server::run()
 		catch(std::exception& e)
 		{
 			is_running = false;
-			printf("\n error : %s\n", e.what());
+			printf("\nerror : %s\n", e.what());
 		}
 	});
 	printf("Successfully started server.\n");
