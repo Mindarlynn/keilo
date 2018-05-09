@@ -54,3 +54,9 @@ single-pointer variable 자체가 하나의 value로 인식되었기 때문이�
 ### 문제해결
 클라이언트와의 세션 유지 전 유저 인증기능 구현함. <br/>
 server 안에 user_database_ 변수에 유저 데이터베이스 파일을 import 해서 유저 정보를 가져옴. <br/>
+
+## 2018_05_10
+### 문제해결
+원래 평문을 암호화 해서 보낼 예정이었으나, 평문 자체에 json 텍스트가 모두 포함되어 전송되는 방식을 취하고 있기 때문에 오브젝트가 많아지면 암호화를 할 수 없는 경우가 발생함을 확인함.<br/>
+조금 더 개발을 하여 temporary json file을 생성하고, 생성한 파일을 binary코드로 읽어들인 후 암호화 하여 파일 자체를 전송하는 방식을 구현 진행목록에 저장해두었다.<br/>
+기존 코드에서는 winsock 자체의 코드를 사용하였지만, tcp_client라는 wrapped 된 socket class를 만들어 코드를 더 깔끔하게 정리하였다. 이 부분에서 run 함수 안에 첫번째 람다함수에서 non-pointer variable인 client variable의 값을 제대로 가져오지 못하는 것을 발견하였다. client variable을 single-pointer variable로 변경하였고, client_list 등 non-pointer tcp_client variable을 다루는 variable과 functions를 double-pointer variable을 parameter로 받게 수정하였다. 또 기존의 코드에서는 single-pointer variable인 database variable과 table variable을 single-pointer reference type parameter로 받았었는데, 코드의 통일성을 위해 double-pointer variable type의 parameter를 받는 것으로 변경하였다.
