@@ -144,6 +144,7 @@ void keilo_server::run()
 
 						client->send_data(message);
 						client->stop();
+						delete client;
 					}
 				});
 			}
@@ -155,7 +156,6 @@ void keilo_server::run()
 		}
 	});
 	printf("Successfully started server.\n");
-	while (is_running);
 	accept_thread.join();
 }
 
@@ -240,11 +240,10 @@ std::string keilo_server::process_message(std::string message, keilo_database** 
 }
 
 
-std::list<tcp_socket*>::iterator keilo_server::find_client(tcp_socket*const client)
+std::list<tcp_socket*>::iterator keilo_server::find_client(tcp_socket* client)
 {
 	for (auto it = clients.begin(); it != clients.end(); ++it)
-		if ((*it)->get_ip() == client->get_ip() &&
-			(*it)->get_port() == client->get_port())
+		if (*client == **it)
 			return it;
 	return clients.end();
 }
@@ -290,7 +289,7 @@ std::string keilo_server::select_database(std::string message, u_int pos, keilo_
 		if (message[pos] == SEMICOLON)
 			break;
 		name << message[pos++];
-	}
+	}	
 
 	if (*database = application->select_database(name.str()); !*database)
 		return R"(Database that was named ")" + name.str() + R"(" does not exist in server)";
@@ -400,6 +399,20 @@ std::string keilo_server::select_table(std::string message, u_int pos, keilo_dat
 		name << message[pos++];
 	}
 
+	if(name.str() == "all")
+	{
+		std::stringstream tables;
+		auto all_tables = (*database)->get_tables();
+		for(auto it = all_tables.begin(); it != all_tables.end(); ++it)
+		{
+			tables << it->get_name();
+			auto tmp = it;
+			if (++tmp != all_tables.end())
+				tables << std::endl;
+		}
+		return tables.str();
+	}
+
 	if (*table = (*database)->select_table(name.str()); !*table)
 		return R"(Table that was named ")" + name.str() + R"(" does not exist in database ")" + (*database)->get_name() +
 			R"(".)";
@@ -496,9 +509,9 @@ std::string keilo_server::drop_table(std::string message, u_int pos, keilo_datab
 			break;
 		name << message[pos++];
 	}
-	if (table)
+	if (*table)
 		if (name.str() == (*table)->get_name())
-			table = nullptr;
+			*table = nullptr;
 
 	return (*database)->drop_table(name.str());
 }

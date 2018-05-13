@@ -93,7 +93,6 @@ std::string keilo_table::update_record(const keilo_instance from, const keilo_in
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 
 	keilo_record* found_record = nullptr;
-	auto found = false;
 
 	for (auto& record : records_)
 	{
@@ -101,13 +100,12 @@ std::string keilo_table::update_record(const keilo_instance from, const keilo_in
 			if (instance == from)
 			{
 				found_record = &record;
-				found = true;
 				break;
 			}
-		if (found)
+		if (found_record)
 			break;
 	}
-	if (!found)
+	if (!found_record)
 		return "Record that has " + from.first + R"( ")" + from.second + R"(" does not exist in table ")" + get_name() +
 			R"(".)";
 
@@ -130,8 +128,7 @@ std::string keilo_table::remove_record(const keilo_instance where)
 {
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 
-	std::list<keilo_record>::iterator it;
-	auto found = false;
+	auto it = records_.end();
 
 	for (auto record = records_.begin(); record != records_.end(); ++record)
 	{
@@ -139,13 +136,12 @@ std::string keilo_table::remove_record(const keilo_instance where)
 			if (*instance == where)
 			{
 				it = record;
-				found = true;
 				break;
 			}
-		if (found)
+		if (it != records_.end())
 			break;
 	}
-	if (!found)
+	if (it == records_.end())
 		return "Record that has " + where.first + '\"' + where.second + R"(" does not exist in table ")" + get_name() +
 			R"(".)";
 
