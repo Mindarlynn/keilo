@@ -9,7 +9,7 @@ des & base64 encryption을 진행하면 920글자가 나왔다. 이 상태에서
 이 encrypted text를 compress하면 579글자가 나왔다. plain text보다는 조금 줄어든 것을 확인할 수 있었다.<br/>
 ### 2. compress 후 des & base64 encryption
 plain text를 compress를 했을 경우 140글자가 나왔다.<br/>
-이 compressed text를 encrypt 했을 때 192자가 나왔다.
+이 compressed text를 encrypt 했을 때 192자가 나왔다.<br/>
 1번 방법을 진행했을 때보다 훨씬 적은 글자의 text를 얻을 수 있었다.
 
 이 2방법을 사용하여 평문 통신 방식을 교체할 예정이다.
