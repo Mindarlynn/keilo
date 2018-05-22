@@ -119,13 +119,13 @@ private:
 		return recovered;
 	}
 	template <class Ty>
-	static std::string ecb_encrypt(byte* key, const std::string& plain)
+	static std::string ecb_encrypt(byte* const key, const std::string& plain)
 	{
 		typename CryptoPP::ECB_Mode<Ty>::Encryption encryptor(key, Ty::DEFAULT_KEYLENGTH);
 		return encrypt(encryptor, plain);
 	}
 	template <class Ty>
-	static std::string ecb_decrypt(byte *key, const std::string &plain)
+	static std::string ecb_decrypt(byte* const key, const std::string &plain)
 	{
 		typename CryptoPP::ECB_Mode<Ty>::Decryption decryptor(key, Ty::DEFAULT_KEYLENGTH);
 		return decrypt(decryptor, plain);

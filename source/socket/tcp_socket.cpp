@@ -5,12 +5,12 @@
 
 byte string_process::key_[CryptoPP::DES::DEFAULT_KEYLENGTH];
 
-tcp_socket::tcp_socket(string_process** processer) : socket_(0), addr_len_(0)
+tcp_socket::tcp_socket(string_process** const processer) : socket_(0), addr_len_(0)
 {
 	processer_ = *processer;
 }
 
-tcp_socket::tcp_socket(char * const ip, const int port, string_process** processer)
+tcp_socket::tcp_socket(const char*& ip, const u_short& port, string_process** const processer)
 {
 	if (!initialize_socket())
 		throw std::exception("Some errors caused while initializing socket.");
@@ -19,7 +19,7 @@ tcp_socket::tcp_socket(char * const ip, const int port, string_process** process
 	processer_ = *processer;
 }
 
-tcp_socket::tcp_socket(const u_long ip, const int port, string_process** processer)
+tcp_socket::tcp_socket(const u_long& ip, const u_short& port, string_process** const processer)
 {
 	if (!initialize_socket())
 		throw std::exception("Some errors caused while initializing socket.");
@@ -42,7 +42,7 @@ bool tcp_socket::initialize_socket()
 	return is_initialized_;
 }
 
-bool tcp_socket::bind_socket(char * const ip, const int port)
+bool tcp_socket::bind_socket(const char*& ip, const u_short& port)
 {
 	ZeroMemory(&address_, sizeof address_);
 
@@ -55,7 +55,7 @@ bool tcp_socket::bind_socket(char * const ip, const int port)
 	return is_bound_;
 }
 
-bool tcp_socket::bind_socket(const u_long ip, const int port)
+bool tcp_socket::bind_socket(const u_long& ip, const u_short& port)
 {
 	ZeroMemory(&address_, sizeof address_);
 
@@ -73,7 +73,7 @@ bool tcp_socket::start() const
 	return listen(socket_, SOMAXCONN) != SOCKET_ERROR;
 }
 
-bool tcp_socket::connect_to(const std::string ip, const int port)
+bool tcp_socket::connect_to(const std::string& ip, const u_short& port)
 {
 	if (!is_initialized_)
 		initialize_socket();
@@ -86,7 +86,7 @@ bool tcp_socket::connect_to(const std::string ip, const int port)
 	return connect(socket_, reinterpret_cast<SOCKADDR*>(&address_), sizeof address_) != SOCKET_ERROR;
 }
 
-void tcp_socket::accept_client(tcp_socket** socket) const
+void tcp_socket::accept_client(tcp_socket** const socket) const
 {
 	(*socket)->addr_len_ = sizeof (*socket)->address_;
 
