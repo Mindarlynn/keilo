@@ -10,7 +10,7 @@
 
 using json = nlohmann::json;
 
-std::string keilo_application::create_database(const std::string name)
+std::string keilo_application::create_database(const std::string& name)
 {
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 
@@ -22,7 +22,7 @@ std::string keilo_application::create_database(const std::string name)
 	return R"(Successfully create database that was named ")" + name + R"(".)";
 }
 
-keilo_database* keilo_application::select_database(const std::string name)
+keilo_database* keilo_application::select_database(const std::string& name)
 {
 	std::lock_guard<std::mutex> mutex_guard(mutex_);
 
@@ -33,7 +33,7 @@ keilo_database* keilo_application::select_database(const std::string name)
 	return nullptr;
 }
 
-std::string keilo_application::import_file(std::string file_name)
+std::string keilo_application::import_file(const std::string& file_name)
 {
 	if (file_name.find(".json") == std::string::npos)
 		return "This program support only *.json files.";
@@ -48,12 +48,12 @@ std::string keilo_application::import_file(std::string file_name)
 		return R"(File that was named ")" + file_name + R"(" does not exist.)";
 
 	std::lock_guard<std::mutex> mutex_lock(mutex_);
-	databases_.emplace_back(file);
+	databases_.emplace_back(&file);
 
 	return R"(Successfully impotred file that was named ")" + file_name + R"(".)";
 }
 
-std::string keilo_application::export_database(const std::string database_name, const std::string file_name)
+std::string keilo_application::export_database(const std::string& database_name, const std::string& file_name)
 {
 	auto database = select_database(database_name);
 	try
@@ -68,12 +68,12 @@ std::string keilo_application::export_database(const std::string database_name, 
 			for (auto& record : table.get_records())
 			{
 				json rc;
-				for (auto& instance : record)
+				for (auto& field : record)
 				{
-					if (instance.second[0] >= '0' && instance.second[0] <= '9')
-						rc[instance.first] = stoi(instance.second);
+					if (field.second[0] >= '0' && field.second[0] <= '9')
+						rc[field.first] = stoi(field.second);
 					else
-						rc[instance.first] = instance.second;
+						rc[field.first] = field.second;
 				}
 				rc_arr += rc;
 			}

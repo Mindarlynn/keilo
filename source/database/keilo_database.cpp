@@ -3,15 +3,14 @@
 
 #include <string>
 #include <fstream>
-#include <unordered_map>
 
 using json = nlohmann::json;
 
-keilo_database::keilo_database(const std::string name) : name_(name), tables_(std::list<keilo_table>())
+keilo_database::keilo_database(const std::string& name) : name_(name), tables_(std::list<keilo_table>())
 {
 }
 
-keilo_database::keilo_database(std::ifstream& file) : tables_(std::list<keilo_table>())
+keilo_database::keilo_database(std::ifstream* const file) : tables_(std::list<keilo_table>())
 {
 	parse_file(file);
 }
@@ -20,9 +19,9 @@ keilo_database::keilo_database(const keilo_database& other) : name_(other.name_)
 {
 }
 
-std::string keilo_database::create_table(const std::string name)
+std::string keilo_database::create_table(const std::string& name)
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 
 	for (const auto& table : tables_)
 		if (table.get_name() == name)
@@ -32,9 +31,9 @@ std::string keilo_database::create_table(const std::string name)
 	return R"(Successfully create table that was named ")" + name + R"(".)";
 }
 
-std::string keilo_database::add_table(keilo_table& other)
+std::string keilo_database::add_table(const keilo_table& other)
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 	for (const auto& table : tables_)
 		if (table.get_name() == other.get_name())
 			return R"(Table ")" + other.get_name() + R"(" already exist in database ")" + get_name() + R"(".)";
@@ -43,9 +42,9 @@ std::string keilo_database::add_table(keilo_table& other)
 	return R"(Successfully added table that was named ")" + other.get_name() + R"(".)";
 }
 
-keilo_table* keilo_database::select_table(const std::string name)
+keilo_table* keilo_database::select_table(const std::string& name)
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 	for (auto& table : tables_)
 		if (table.get_name() == name)
 			return &table;
@@ -53,9 +52,9 @@ keilo_table* keilo_database::select_table(const std::string name)
 	return nullptr;
 }
 
-std::string keilo_database::drop_table(const std::string name)
+std::string keilo_database::drop_table(const std::string& name)
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 	auto it = tables_.end();
 
 	for (auto table = tables_.begin(); table != tables_.end(); ++table)
@@ -72,10 +71,10 @@ std::string keilo_database::drop_table(const std::string name)
 	return R"(Successfully droped table that was named ")" + name + R"(".)";
 }
 
-void keilo_database::parse_file(std::ifstream& file)
+void keilo_database::parse_file(std::ifstream* const file)
 {
 	json js;
-	file >> js;
+	*file >> js;
 
 	for (auto db = js.cbegin(); db != js.cend(); ++db)
 	{
@@ -124,7 +123,7 @@ void keilo_database::parse_file(std::ifstream& file)
 
 std::list<keilo_table> keilo_database::get_tables()
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 	return tables_;
 }
 
@@ -133,7 +132,7 @@ std::string keilo_database::get_name() const
 	return name_;
 }
 
-void keilo_database::set_name(const std::string name)
+void keilo_database::set_name(const std::string& name)
 {
 	name_ = name;
 }

@@ -8,8 +8,8 @@
 class keilo_database
 {
 public:
-	explicit keilo_database(std::string name);
-	explicit keilo_database(std::ifstream& file);
+	explicit keilo_database(const std::string& name);
+	explicit keilo_database(std::ifstream* const file);
 	keilo_database(const keilo_database& other);
 
 	/**
@@ -17,35 +17,35 @@ public:
 	 * \param name Table's name.
 	 * \return Result of creating table.
 	 */
-	std::string create_table(std::string name);
+	std::string create_table(const std::string& name);
 
 	/**
 	 * \brief Add table into the database.
 	 * \param other Table that will be added into the database.
 	 * \return Result of adding table.
 	 */
-	std::string add_table(keilo_table& other);
+	std::string add_table(const keilo_table& other);
 
 	/**
 	 * \brief Select table that has same name with parameter.
 	 * \param name Table's name.
 	 * \return Selected table or nullptr.
 	 */
-	keilo_table* select_table(std::string name);
+	keilo_table* select_table(const std::string& name);
 
 	/**
 	 * \brief Drop table that has same name with parameter.
 	 * \param name Table's name
 	 * \return Result of dropping table.
 	 */
-	std::string drop_table(std::string name);
+	std::string drop_table(const std::string& name);
 
 private:
 	/**
 	 * \brief Parse database file.
 	 * \param file Database file.
 	 */
-	void parse_file(std::ifstream& file);
+	void parse_file(std::ifstream* const file);
 
 public:
 	/**
@@ -65,7 +65,7 @@ private:
 	 * \brief Set database's name.
 	 * \param name Database's new name.
 	 */
-	void set_name(std::string name);
+	void set_name(const std::string& name);
 
 	/**
 	 * \brief Table's name.

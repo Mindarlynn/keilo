@@ -7,8 +7,8 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-using keilo_instance = std::pair<std::string, std::string>;
-using keilo_record = std::list<keilo_instance>;
+using keilo_field = std::pair<std::string, std::string>;
+using keilo_record = std::list<keilo_field>;
 
 inline bool operator==(tcp_socket a, tcp_socket b)
 {

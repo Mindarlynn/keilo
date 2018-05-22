@@ -9,8 +9,8 @@
 class keilo_table
 {
 public:
-	explicit keilo_table(std::string name);
-	keilo_table(std::string name, std::list<keilo_record> records);
+	explicit keilo_table(const std::string& name);
+	keilo_table(const std::string& name, const std::list<keilo_record>& records);
 	keilo_table(const keilo_table& other);
 
 	/**
@@ -18,21 +18,21 @@ public:
 	* \param other Table that will be joined.
 	* \return Joined table.
 	*/
-	keilo_table join(keilo_table* other);
+	keilo_table join(keilo_table* const other);
 
 	/**
 	 * \brief Select record that meets the condition.
 	 * \param where Instance that record has.
 	 * \return Selected record.
 	 */
-	keilo_record* select_record(keilo_instance where);
+	keilo_record* select_record(const keilo_field& where);
 
 	/**
 	 * \brief Insert record into the table.
 	 * \param record Record will be inserted into the table.
 	 * \return Result of inserting record.
 	 */
-	std::string insert_record(keilo_record& record);
+	std::string insert_record(const keilo_record& record);
 
 	/**
 	 * \brief Update record that meets the condition.
@@ -40,14 +40,14 @@ public:
 	 * \param to Record's new values.
 	 * \return Result of Updating record.
 	 */
-	std::string update_record(keilo_instance from, keilo_instance to);
+	std::string update_record(const keilo_field& from, const keilo_field& to);
 
 	/**
 	 * \brief Remove record that meets the condition.
 	 * \param where To find record that has `where`'s value.
 	 * \return Result of removing record.
 	 */
-	std::string remove_record(keilo_instance where);
+	std::string remove_record(const keilo_field& where);
 
 	/**
 	 * \brief Get list of records.
@@ -72,7 +72,7 @@ private:
 	 * \brief Set table's name.
 	 * \param name Table's new name.
 	 */
-	void set_name(std::string name);
+	void set_name(const std::string& name);
 
 	/**
 	 * \brief Table's name

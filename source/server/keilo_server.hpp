@@ -8,6 +8,8 @@
 #include <atomic>
 #include <mutex>
 
+#include <string_process.h>
+
 #pragma region Command
 	#define CREATE			"create"
 	#define SELECT			"select"
@@ -28,12 +30,12 @@ class keilo_server
 {
 public:
 
-	explicit keilo_server(const int port);
+	explicit keilo_server(const int& port);
 	~keilo_server();
 
 #pragma region User Accessable Functions
 	void run();
-	void import_file(const std::string file_name) const;
+	void import_file(const std::string& file_name) const;
 	//void run_local();
 #pragma endregion
 
@@ -48,7 +50,7 @@ public:
 	 * \param database Selected database.
 	 * \param table Selected table.
 	 */
-	void process_client(tcp_socket** client, keilo_database** database, keilo_table** table);
+	void process_client(tcp_socket**const client, keilo_database** database, keilo_table** table);
 
 	/**
 	 * \brief Process commands that client sent.
@@ -57,7 +59,7 @@ public:
 	 * \param table Selected table.
 	 * \return result of processing command.
 	 */
-	std::string process_message(std::string message, keilo_database** database, keilo_table** table) const;
+	std::string process_message(const std::string& message, keilo_database** database, keilo_table** table) const;
 
 	/**
 	 * \brief 
@@ -96,7 +98,7 @@ public:
 	 * \param pos Iterator's position.
 	 * \return Result of creating database
 	 */
-	std::string create_database(std::string message, u_int pos) const;
+	std::string create_database(const std::string& message, u_int pos) const;
 
 	/**
 	 * \brief Select database.
@@ -105,7 +107,7 @@ public:
 	 * \param database Selected database will be assigned into this variable.
 	 * \return Result of selecting database
 	 */
-	std::string select_database(std::string message, u_int pos, keilo_database** database) const;
+	std::string select_database(const std::string& message, u_int pos, keilo_database** const database) const;
 
 	/**
 	 * \brief  Export database to file.
@@ -114,7 +116,7 @@ public:
 	 * \param database Selected database.
 	 * \return Result of exporting database
 	 */
-	std::string export_database(std::string message, u_int pos, keilo_database** database) const;
+	std::string export_database(const std::string& message, u_int pos, keilo_database** const database) const;
 
 	/**
 	 * \brief Import database from file.
@@ -122,7 +124,7 @@ public:
 	 * \param pos Iterator's position.
 	 * \return Result of importing database.
 	 */
-	std::string import_database(std::string message, u_int pos) const;
+	std::string import_database(const std::string& message, u_int pos) const;
 
 	/**
 	 * \brief Create table into the database.
@@ -131,7 +133,7 @@ public:
 	 * \param database Selected database.
 	 * \return Result of creating table.
 	 */
-	static std::string create_table(std::string message, u_int pos, keilo_database** database);
+	static std::string create_table(const std::string& message, u_int pos, keilo_database** const database);
 
 	/**
 	 * \brief Select table into the database.
@@ -141,7 +143,7 @@ public:
 	 * \param table Selected table will be assigned into this variable.
 	 * \return Result of selecting table
 	 */
-	static std::string select_table(std::string message, u_int pos, keilo_database** database, keilo_table** table);
+	static std::string select_table(const std::string& message, u_int pos, keilo_database** const database, keilo_table** const table);
 
 	/**
 	 * \brief Join table.
@@ -151,7 +153,7 @@ public:
 	 * \param table Selected table.
 	 * \return Result of joining tables
 	 */
-	std::string join_table(std::string message, u_int pos, keilo_database** database, keilo_table** table) const;
+	std::string join_table(const std::string& message, u_int pos, keilo_database** const database, keilo_table** const table) const;
 
 	/**
 	 * \brief Drop table.
@@ -161,7 +163,7 @@ public:
 	 * \param table Selected table.
 	 * \return Result of dropping table.
 	 */
-	static std::string drop_table(std::string message, u_int pos, keilo_database** database, keilo_table** table);
+	static std::string drop_table(const std::string& message, u_int pos, keilo_database** const database, keilo_table** const table);
 
 	/**
 	 * \brief Select records from table
@@ -170,7 +172,7 @@ public:
 	 * \param table Selected table.
 	 * \return Selected records.
 	 */
-	static std::string select_record(std::string message, u_int pos, keilo_table** table);
+	static std::string select_record(const std::string& message, u_int pos, keilo_table** const table);
 
 	/**
 	 * \brief Insert record into table.
@@ -179,7 +181,7 @@ public:
 	 * \param table Selected table.
 	 * \return Result of inserting record.
 	 */
-	static std::string insert_record(std::string message, u_int pos, keilo_table** table);
+	static std::string insert_record(const std::string& message, u_int pos, keilo_table** const table);
 
 	/**
 	 * \brief Update record that meets the condition.
@@ -188,7 +190,7 @@ public:
 	 * \param table Selected table.
 	 * \return Result of updating record.
 	 */
-	static std::string update_record(std::string message, u_int pos, keilo_table** table);
+	static std::string update_record(const std::string& message, u_int pos, keilo_table** const table);
 
 	/**
 	 * \brief Remove record that meets the condition.
@@ -197,7 +199,7 @@ public:
 	 * \param table Selected table.
 	 * \return Result of removing record.
 	 */
-	static std::string remove_record(std::string message, u_int pos, keilo_table** table);
+	static std::string remove_record(const std::string& message, u_int pos, keilo_table** const table);
 #pragma endregion
 
 	/**
@@ -213,4 +215,6 @@ public:
 	 * \brief Core database.
 	 */
 	std::unique_ptr<keilo_application> application;
+
+	string_process* processer;
 };

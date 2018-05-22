@@ -3,24 +3,29 @@
 #pragma warning(disable:4996)
 #pragma comment(lib, "ws2_32")
 
-tcp_socket::tcp_socket() : socket_(0), addr_len_(0)
+byte string_process::key_[CryptoPP::DES::DEFAULT_KEYLENGTH];
+
+tcp_socket::tcp_socket(string_process** processer) : socket_(0), addr_len_(0)
 {
+	processer_ = *processer;
 }
 
-tcp_socket::tcp_socket(char * const ip, const int port)
+tcp_socket::tcp_socket(char * const ip, const int port, string_process** processer)
 {
 	if (!initialize_socket())
 		throw std::exception("Some errors caused while initializing socket.");
 	if (!bind_socket(ip, port))
 		throw std::exception("Some errors caused while binding socket.");
+	processer_ = *processer;
 }
 
-tcp_socket::tcp_socket(const u_long ip, const int port)
+tcp_socket::tcp_socket(const u_long ip, const int port, string_process** processer)
 {
 	if (!initialize_socket())
 		throw std::exception("Some errors caused while initializing socket.");
 	if (!bind_socket(ip, port))
 		throw std::exception("Some errors caused while binding socket.");
+	processer_ = *processer;
 }
 
 tcp_socket::~tcp_socket()
@@ -92,26 +97,36 @@ void tcp_socket::accept_client(tcp_socket** socket) const
 		throw std::exception(std::to_string(WSAGetLastError()).c_str());
 }
 
+bool tcp_socket::send(const std::string& data)
+{
+	return send_data(processer_ ? processer_->compress(data) : data);
+}
+
+std::string tcp_socket::recv()
+{
+	return processer_ ? processer_->decompress(receive_data()) : receive_data();
+}
+
 std::string tcp_socket::receive_data()
 {
 	char buffer[1024];
 
-	const auto recvlen = recv(socket_, buffer, 1024, 0);
+	const auto recvlen = ::recv(socket_, buffer, 1024, 0);
 	// Disconnect
 	if (recvlen <= 0)
 	{
 		this->stop();
-		return "Disconnected";
+		return processer_ ? processer_->compress("Disconnected") : "Disconnected";
 	}
 
-	buffer[recvlen] = 0;
+	//buffer[recvlen] = 0;
 
 	return buffer;
 }
 
-bool tcp_socket::send_data(const std::string data)
+bool tcp_socket::send_data(const std::string& data)
 {
-	const auto ret = send(socket_, data.c_str(), data.length(), 0);
+	const auto ret = ::send(socket_, data.c_str(), data.length(), 0);
 	if (ret == -1)
 	{
 		this->stop();

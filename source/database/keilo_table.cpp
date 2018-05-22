@@ -2,11 +2,11 @@
 
 #include <mutex>
 
-keilo_table::keilo_table(const std::string name) : name_(name), records_()
+keilo_table::keilo_table(const std::string& name) : name_(name), records_()
 {
 }
 
-keilo_table::keilo_table(const std::string name, const std::list<keilo_record> rows) : name_(name), records_(rows)
+keilo_table::keilo_table(const std::string& name, const std::list<keilo_record>& rows) : name_(name), records_(rows)
 {
 }
 
@@ -14,19 +14,20 @@ keilo_table::keilo_table(const keilo_table& other) : name_(other.name_), records
 {
 }
 
-keilo_table keilo_table::join(keilo_table* other)
+keilo_table keilo_table::join(keilo_table* const other)
 {
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const auto other_table{ other->get_records() };
 	auto joined_table{ get_records() };
-	auto other_table{ other->get_records() };
 
 	for (auto& i_record : joined_table)
 	{
-		keilo_instance i_instance;
+		keilo_field i_field;
 
-		for (const auto& instance : i_record)
-			if (instance.first == "index")
+		for (const auto& field : i_record)
+			if (field.first == "index")
 			{
-				i_instance = instance;
+				i_field = field;
 				break;
 			}
 
@@ -34,11 +35,11 @@ keilo_table keilo_table::join(keilo_table* other)
 
 		for (auto& j_record : other_table)
 		{
-			for (const auto& j_instance : j_record)
-				if (i_instance == j_instance)
+			for (const auto& j_field : j_record)
+				if (i_field == j_field)
 					found = true;
 				else
-					i_record.emplace_back(j_instance.first, j_instance.second);
+					i_record.emplace_back(j_field.first, j_field.second);
 			if (found)
 				break;
 		}
@@ -46,33 +47,33 @@ keilo_table keilo_table::join(keilo_table* other)
 	return keilo_table(get_name() + "+" + other->get_name(), joined_table);
 }
 
-keilo_record* keilo_table::select_record(const keilo_instance where)
+keilo_record* keilo_table::select_record(const keilo_field& where)
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 
 	for (auto record : records_)
-		for (const auto instance : record)
-			if (instance == where)
+		for (const auto field : record)
+			if (field == where)
 				return &record;
 	return nullptr;
 }
 
-std::string keilo_table::insert_record(keilo_record& record)
+std::string keilo_table::insert_record(const keilo_record& record)
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 	std::string index;
 	auto pos = 0;
 
-	for (auto& i_instance : record)
-		if (i_instance.first == "index")
+	for (auto& i_field : record)
+		if (i_field.first == "index")
 		{
 			for (const auto& j_record : records_)
-				for (const auto& j_instance : j_record)
-					if (i_instance == j_instance)
-						return R"(Record that has index ")" + i_instance.second + R"(" is already exist in table ")" + get_name() +
+				for (const auto& j_field : j_record)
+					if (i_field == j_field)
+						return R"(Record that has index ")" + i_field.second + R"(" is already exist in table ")" + get_name() +
 							R"(".)";
 
-			index = i_instance.second;
+			index = i_field.second;
 			pos = atoi(index.c_str());
 			break;
 		}
@@ -88,16 +89,16 @@ std::string keilo_table::insert_record(keilo_record& record)
 	return R"(Successfully inserted record that has index")" + index + R"(" to table ")" + get_name() + R"(".)";
 }
 
-std::string keilo_table::update_record(const keilo_instance from, const keilo_instance to)
+std::string keilo_table::update_record(const keilo_field& from, const keilo_field& to)
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 
 	keilo_record* found_record = nullptr;
 
 	for (auto& record : records_)
 	{
-		for (const auto& instance : record)
-			if (instance == from)
+		for (const auto& field : record)
+			if (field == from)
 			{
 				found_record = &record;
 				break;
@@ -111,10 +112,10 @@ std::string keilo_table::update_record(const keilo_instance from, const keilo_in
 
 	auto changed = false;
 
-	for (auto& instance : *found_record)
-		if (instance.first == to.first)
+	for (auto& field : *found_record)
+		if (field.first == to.first)
 		{
-			instance.second = to.second;
+			field.second = to.second;
 			changed = true;
 			break;
 		}
@@ -124,16 +125,16 @@ std::string keilo_table::update_record(const keilo_instance from, const keilo_in
 		R"(".)";
 }
 
-std::string keilo_table::remove_record(const keilo_instance where)
+std::string keilo_table::remove_record(const keilo_field& where)
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 
 	auto it = records_.end();
 
 	for (auto record = records_.begin(); record != records_.end(); ++record)
 	{
-		for (auto instance = record->begin(); instance != record->end(); ++instance)
-			if (*instance == where)
+		for (auto field = record->begin(); field != record->end(); ++field)
+			if (*field == where)
 			{
 				it = record;
 				break;
@@ -152,13 +153,13 @@ std::string keilo_table::remove_record(const keilo_instance where)
 
 std::list<keilo_record> keilo_table::get_records()
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 	return records_;
 }
 
 u_int keilo_table::count()
 {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex_);
 	return records_.size();
 }
 
@@ -167,7 +168,7 @@ std::string keilo_table::get_name() const
 	return name_;
 }
 
-void keilo_table::set_name(const std::string name)
+void keilo_table::set_name(const std::string& name)
 {
 	name_ = name;
 }
