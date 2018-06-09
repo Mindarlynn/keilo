@@ -98,8 +98,8 @@ import [file name];
 #### export database with file
 export [file name];
 
-#### create
 -----------
+#### create
 ##### database
 ```
 create database [name];
@@ -111,7 +111,6 @@ create table [name];
 ```
 -----------
 #### select
------------
 ##### database
 ```
 select database [name]
@@ -130,7 +129,6 @@ select record [field]:[value]; or select record all;
 ```
 -----------
 ##### join (table)
-------------------
 ###### ※테이블을 select한 상태에서만 사용할 수 있습니다.
 ###### ※각 테이블에 동일한 이름의 field가 무조건 하나 이상 존재해야만 합니다.
 
@@ -144,7 +142,6 @@ join [name];
 join [[database name]_[table name]];
 ```
 ------------------
-
 ###### ※이후의 명령어들은 테이블을 select한 상태에서만 사용할 수 있습니다.
 ------------------
 ##### insert
