@@ -4,24 +4,18 @@
 
 #include "string_process.h"
 
-#pragma warning(disable:4996)
+#pragma warning(disable : 4996)
 
-class tcp_socket
-{
+class tcp_socket {
 public:
 	explicit tcp_socket(string_process** const processer = nullptr);
-	tcp_socket(const char*& ip, const u_short& port, string_process** const processer = nullptr);
-	tcp_socket(const u_long& ip, const u_short& port, string_process** const processer = nullptr);
+	tcp_socket(const char*& ip, const u_short& port,
+		string_process** const processer = nullptr);
+	tcp_socket(const u_long& ip, const u_short& port,
+		string_process** const processer = nullptr);
 	~tcp_socket();
 
-	void operator=(const tcp_socket& other)
-	{
-		this->socket_ = other.socket_;
-		this->address_ = other.address_;
-		this->addr_len_ = other.addr_len_;
-		this->is_initialized_ = other.is_initialized_;
-		this->is_bound_ = other.is_bound_;
-	}
+	void operator=(const tcp_socket& other);
 
 private:
 	bool initialize_socket();
@@ -38,16 +32,9 @@ public:
 	bool send(const std::string& data);
 	std::string recv();
 
+	auto get_port() const { return ntohs(address_.sin_port); }
 
-	auto get_port() const
-	{
-		return ntohs(address_.sin_port);
-	}
-
-	std::string get_ip() const
-	{
-		return inet_ntoa(address_.sin_addr);
-	}
+	std::string get_ip() const { return inet_ntoa(address_.sin_addr); }
 
 	void stop();
 
@@ -61,4 +48,3 @@ private:
 
 	string_process* processer_;
 };
-

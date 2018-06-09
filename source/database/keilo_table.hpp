@@ -6,8 +6,7 @@
 #include <mutex>
 #include <unordered_map>
 
-class keilo_table
-{
+class keilo_table {
 public:
 	explicit keilo_table(const std::string& name);
 	keilo_table(const std::string& name, const std::list<keilo_record>& records);
@@ -21,71 +20,71 @@ public:
 	keilo_table join(keilo_table* const other);
 
 	/**
-	 * \brief Select record that meets the condition.
-	 * \param where Instance that record has.
-	 * \return Selected record.
-	 */
+	* \brief Select record that meets the condition.
+	* \param where Instance that record has.
+	* \return Selected record.
+	*/
 	keilo_record* select_record(const keilo_field& where);
 
 	/**
-	 * \brief Insert record into the table.
-	 * \param record Record will be inserted into the table.
-	 * \return Result of inserting record.
-	 */
+	* \brief Insert record into the table.
+	* \param record Record will be inserted into the table.
+	* \return Result of inserting record.
+	*/
 	std::string insert_record(const keilo_record& record);
 
 	/**
-	 * \brief Update record that meets the condition.
-	 * \param from To find record that has `from`'s value.
-	 * \param to Record's new values.
-	 * \return Result of Updating record.
-	 */
+	* \brief Update record that meets the condition.
+	* \param from To find record that has `from`'s value.
+	* \param to Record's new values.
+	* \return Result of Updating record.
+	*/
 	std::string update_record(const keilo_field& from, const keilo_field& to);
 
 	/**
-	 * \brief Remove record that meets the condition.
-	 * \param where To find record that has `where`'s value.
-	 * \return Result of removing record.
-	 */
+	* \brief Remove record that meets the condition.
+	* \param where To find record that has `where`'s value.
+	* \return Result of removing record.
+	*/
 	std::string remove_record(const keilo_field& where);
 
 	/**
-	 * \brief Get list of records.
-	 * \return List of record.
-	 */
+	* \brief Get list of records.
+	* \return List of record.
+	*/
 	std::list<keilo_record> get_records();
 
 	/**
-	 * \brief Get Count of records.
-	 * \return Count of records.
-	 */
+	* \brief Get Count of records.
+	* \return Count of records.
+	*/
 	u_int count();
 
 	/**
-	 * \brief Get Table's name
-	 * \return Table's name
-	 */
+	* \brief Get Table's name
+	* \return Table's name
+	*/
 	std::string get_name() const;
 
 private:
 	/**
-	 * \brief Set table's name.
-	 * \param name Table's new name.
-	 */
+	* \brief Set table's name.
+	* \param name Table's new name.
+	*/
 	void set_name(const std::string& name);
 
 	/**
-	 * \brief Table's name
-	 */
+	* \brief Table's name
+	*/
 	std::string name_;
 
 	/**
-	 * \brief Mutex of `records_`.
-	 */
+	* \brief Mutex of `records_`.
+	*/
 	std::mutex mutex_;
 
 	/**
-	 * \brief List of record.
-	 */
+	* \brief List of record.
+	*/
 	std::list<keilo_record> records_;
 };
