@@ -2,7 +2,7 @@
 
 keilo는 c++로 제작된 데이터베이스 서버입니다. <br/>
 c++14버전을 기반으로 제작되었고, MSVC와 같은 상용 컴파일러로 컴파일 가능합니다. <br/>
-(Tested platform : Windows10 ver 1709(build 16299.431), msvc 14.1 <br/>
+(Tested platform : Windows10 ver 1709(build 16299.431), msvc 14.1) <br/>
 
 ## 사용된 라이브러리
 
