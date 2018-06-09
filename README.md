@@ -127,9 +127,10 @@ select table [name];
 ```
 select record [field]:[value]; or select record all;
 ```
+------------------
+###### ※이후의 명령어들은 테이블을 select한 상태에서만 사용할 수 있습니다.
 -----------
 ##### join (table)
-###### ※테이블을 select한 상태에서만 사용할 수 있습니다.
 ###### ※각 테이블에 동일한 이름의 field가 무조건 하나 이상 존재해야만 합니다.
 
 ###### ※join할 table이 현재 데이터베이스에 있는 경우:
@@ -141,8 +142,6 @@ join [name];
 ```
 join [[database name]_[table name]];
 ```
-------------------
-###### ※이후의 명령어들은 테이블을 select한 상태에서만 사용할 수 있습니다.
 ------------------
 ##### insert
 ```
