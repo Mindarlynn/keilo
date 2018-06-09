@@ -24,21 +24,19 @@ table : create table [table name];<br/>
 ### select
 database : select database [database name];<br/>
 table : select table [table name];<br/>
-record : select record [identifier]:[value] or all;<br/>
+record : select record [field]:[value] or all;<br/>
 ### join (table)
 join [(other database name_)other table name]
 ### insert (record)
-insert [identifier]:[value], ..., [identifier]:[value];
+insert [field]:[value], ..., [field]:[value];
 ### update (record)
-update (where)[identifier]:[value] (new)[identifier]:[value];
-### remove (record)
-remove [identifier]:[value];
-### export file
+update (where)[field]:[value] (new)[field]:[value];
+### remove record with field (record)
+remove [field]:[value];
+### export database with file
 export [file name];
 ### import file
 import [file name];
-### clear console
-clear;
 
 ## data file
 keilo database use <b><i>*.json</i></b> as an extension.
