@@ -14,7 +14,8 @@ https://www.cryptopp.com/
 
 ## networking
 ### crypted texts
-while communicate with client, we support that encrypting plain text with rsa algorithme. to use encrypting, you have to make rsa keys and import to authentification server. database server and client will request encrypting/decrypting plain text/encrypted text to key server when database server or client server wants to communicate each other.
+Keilo uses one json file as database. At that time, if database is so big, limited buffer cannot receive whole completed database.<br/>
+So, while communicate with client, we support encrypting plain text with des algorithme and compressing encrypted text.</br>
 
 ## commands
 ### create
