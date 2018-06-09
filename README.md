@@ -92,11 +92,17 @@ keilo는 하나의 json파일을 하나의 데이터베이스로 사용하고 �
 ### 커맨드
 서버를 사용하지 않고 프로젝트에서 직접 데이터베이스를 관리 할 수도 있습니다(via API). 그러나 현재 제작된 keilo server를 database server로 사용하는 경우가 일반적이라고 생각했기 때문에 클라이언트에서 커맨드를 입력해 데이터를 받아볼 수 있게 구현되어 있습니다(like SQL). <br/>
 
+------
 #### import database from file
+```
 import [file name];
+```
 
+-------
 #### export database with file
+```
 export [file name];
+```
 
 -----------
 #### create
