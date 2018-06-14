@@ -13,18 +13,18 @@ tcp_socket::tcp_socket(string_process** const processer)
 tcp_socket::tcp_socket(const char*& ip, const u_short& port,
 	string_process** const processer) {
 	if (!initialize_socket())
-		throw std::exception("Some errors caused while initializing socket.");
+		throw std::exception("Some errors caused while initializing socket: " + WSAGetLastError());
 	if (!bind_socket(ip, port))
-		throw std::exception("Some errors caused while binding socket.");
+		throw std::exception("Some errors caused while binding socket: " + WSAGetLastError());
 	this->processer = *processer;
 }
 
 tcp_socket::tcp_socket(const u_long& ip, const u_short& port,
 	string_process** const processer) {
 	if (!initialize_socket())
-		throw std::exception("Some errors caused while initializing socket.");
+		throw std::exception("Some errors caused while initializing socket: " + WSAGetLastError());
 	if (!bind_socket(ip, port))
-		throw std::exception("Some errors caused while binding socket.");
+		throw std::exception("Some errors caused while binding socket: " + WSAGetLastError());
 	this->processer = *processer;
 }
 
