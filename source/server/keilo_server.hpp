@@ -1,5 +1,6 @@
 #pragma once
 
+#include "keilo_core.hpp"
 #include "keilo_application.hpp"
 
 #include <tcp_socket.hpp>

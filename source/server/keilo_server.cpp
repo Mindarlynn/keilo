@@ -26,7 +26,7 @@ keilo_server::keilo_server(const int& port)
 	  res_wsa(WSAStartup(MAKEWORD(2, 2), &wsa)),
 	  client_processes(),
 	  application(new keilo_application()) {
-	if (res_wsa != 0) throw std::exception("error with wsa startup.");
+	if (res_wsa != 0) throw std::exception("error with wsa startup");
 
 	processer = new string_process();
 	socket = new tcp_socket(INADDR_ANY, 6060, &processer);
@@ -98,12 +98,12 @@ void keilo_server::run() {
 						if (has_user) break;
 					}
 					if (has_user) {
-						std::string message = "success";
+						printf("[%s:%d] Authentication Success\n", client->get_ip().c_str(), client->get_port());
 
+						std::string message = "success";
 						client->send(message);
 
 						clients.emplace_back(client);
-
 						client_processes.emplace_back([this, client]() {
 							keilo_database* database = nullptr;
 							keilo_table* table = nullptr;
@@ -167,7 +167,7 @@ std::string keilo_server::process_message(const std::string& message,
 		else if (pos = message.find(TABLE); pos != std::string::npos)
 			result = create_table(message, pos + strlen(TABLE), database);
 		else
-			result = "Unknown command.";
+			result = "Unknown command";
 	}
 	else if (message.find(SELECT) != std::string::npos) {
 		if (pos = message.find(DATABASE); pos != std::string::npos)
@@ -177,7 +177,7 @@ std::string keilo_server::process_message(const std::string& message,
 		else if (pos = message.find(RECORD); pos != std::string::npos)
 			result = select_record(message, pos + strlen(RECORD), table);
 		else
-			result = "Unknown command.";
+			result = "Unknown command";
 	}
 	else if (pos = message.find(JOIN); pos != std::string::npos) {
 		result = join_table(message, pos + strlen(JOIN), database, table);
@@ -201,7 +201,7 @@ std::string keilo_server::process_message(const std::string& message,
 		result = export_database(message, pos + strlen(EXPORT_FILE), database);
 	}
 	else
-		result = "Unknown command.";
+		result = "Unknown command";
 
 	return result;
 }
@@ -234,7 +234,7 @@ std::string keilo_server::create_database(const std::string& message,
 std::string keilo_server::select_database(
 	const std::string& message, uint32_t pos,
 	keilo_database** const database) const {
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -258,7 +258,7 @@ std::string keilo_server::export_database(
 	keilo_database** const database) const {
 	if (!*database) return "Please select database";
 
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -298,9 +298,9 @@ std::string keilo_server::import_database(const std::string& message,
 
 std::string keilo_server::create_table(const std::string& message, uint32_t pos,
                                        keilo_database** const database) {
-	if (!*database) return "Please select database.";
+	if (!*database) return "Please select database";
 
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -319,9 +319,9 @@ std::string keilo_server::create_table(const std::string& message, uint32_t pos,
 std::string keilo_server::select_table(const std::string& message, uint32_t pos,
                                        keilo_database** const database,
                                        keilo_table** const table) {
-	if (!*database) return "Please select database.";
+	if (!*database) return "Please select database";
 
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -354,9 +354,9 @@ std::string keilo_server::select_table(const std::string& message, uint32_t pos,
 std::string keilo_server::join_table(const std::string& message, uint32_t pos,
                                      keilo_database** const database,
                                      keilo_table** const table) const {
-	if (!*table) return "Please select table.";
+	if (!*table) return "Please select table";
 
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -412,9 +412,9 @@ std::string keilo_server::join_table(const std::string& message, uint32_t pos,
 std::string keilo_server::drop_table(const std::string& message, uint32_t pos,
                                      keilo_database** const database,
                                      keilo_table** const table) {
-	if (!*database) return "Please select database.";
+	if (!*database) return "Please select database";
 
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -434,9 +434,9 @@ std::string keilo_server::drop_table(const std::string& message, uint32_t pos,
 
 std::string keilo_server::select_record(const std::string& message, uint32_t pos,
                                         keilo_table** const table) {
-	if (!*table) return "Please select table.";
+	if (!*table) return "Please select table";
 
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -542,9 +542,9 @@ std::string keilo_server::insert_record(const std::string& message, uint32_t pos
 
 std::string keilo_server::update_record(const std::string& message, uint32_t pos,
                                         keilo_table** const table) {
-	if (!*table) return "Please select table.";
+	if (!*table) return "Please select table";
 
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -585,9 +585,9 @@ std::string keilo_server::update_record(const std::string& message, uint32_t pos
 
 std::string keilo_server::remove_record(const std::string& message, uint32_t pos,
                                         keilo_table** const table) {
-	if (!*table) return "Please select table.";
+	if (!*table) return "Please select table";
 
-	if (pos >= message.length()) return "Syntax error.";
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
