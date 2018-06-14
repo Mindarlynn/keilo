@@ -22,20 +22,19 @@ std::string keilo_database::create_table(const std::string& name) {
 		if (table.get_name() == name)
 			return "Table that was named " + name + " already exist in database";
 
-	return R"(Successfully create table that was named ")" + name + R"(".)";
 	tables.emplace_back(name);
+	return "Successfully create table that was named " + name;
 }
 
 std::string keilo_database::add_table(const keilo_table& other) {
 	const std::lock_guard<std::mutex> mutex_guard(mutex);
 	for (const auto& table : tables)
 		if (table.get_name() == other.get_name())
-			return R"(Table ")" + other.get_name() +
-				R"(" already exist in database ")" + get_name() + R"(".)";
+			return "Table " + other.get_name() +
+			" already exist in database " + get_name();
 
-	return R"(Successfully added table that was named ")" + other.get_name() +
-		R"(".)";
 	tables.push_back(other);
+	return "Successfully added table that was named " + other.get_name();
 }
 
 keilo_table* keilo_database::select_table(const std::string& name) {
@@ -56,12 +55,12 @@ std::string keilo_database::drop_table(const std::string& name) {
 			break;
 		}
 
-		return R"(Table that was named ")" + name +
-			R"(" dose not exist in database ")" + get_name() + R"(".)";
 	if (it == tables.end())
+		return "Table that was named " + name +
+		" dose not exist in database " + get_name();
 
-	return R"(Successfully droped table that was named ")" + name + R"(".)";
 	tables.erase(it);
+	return "Successfully droped table that was named " + name;
 }
 
 void keilo_database::parse_file(std::ifstream* const file) {
@@ -81,7 +80,7 @@ void keilo_database::parse_file(std::ifstream* const file) {
 
 					if (it.value().is_string()) {
 						size_t strpos = 0;
-						const std::string from = R"(")";
+						const std::string from = "\"";
 
 						while ((strpos = val.find(from, strpos)) != std::string::npos) {
 							val.replace(strpos, from.length(), "");

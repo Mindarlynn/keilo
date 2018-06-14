@@ -117,8 +117,7 @@ void keilo_server::run() {
 						});
 					}
 					else {
-						const auto message = R"(User ")" + std::string(user_info[0]) +
-							R"(" is not member of this server.)";
+						const auto message = "User " + user_info[0] + "is not member of this server";
 
 						client->send(message);
 						client->stop();
@@ -249,11 +248,9 @@ std::string keilo_server::select_database(
 	}
 
 	if (*database = application->select_database(name.str()); !*database)
-		return R"(Database that was named ")" + name.str() +
-			R"(" does not exist in server)";
+		return "Database named \"" + name.str() + "does not exist in this server";
 
-	return R"(Successfully selected database that was named ")" + name.str() +
-		R"(".)";
+	return "Successfully selected database names " + name.str();
 }
 
 std::string keilo_server::export_database(
@@ -349,12 +346,9 @@ std::string keilo_server::select_table(const std::string& message, u_int pos,
 	}
 
 	if (*table = (*database)->select_table(name.str()); !*table)
-		return R"(Table that was named ")" + name.str() +
-			R"(" does not exist in database ")" + (*database)->get_name() +
-			R"(".)";
+		return "Table named " + name.str() + "does not exist in database " + (*database)->get_name();
 
-	return R"(Successfully selected table that was named ")" + name.str() +
-		R"(".)";
+	return "Successfully selected table named " + name.str();
 }
 
 std::string keilo_server::join_table(const std::string& message, u_int pos,
@@ -379,7 +373,7 @@ std::string keilo_server::join_table(const std::string& message, u_int pos,
 
 		auto selected_database = application->select_database(database_name.str());
 		if (!selected_database)
-			return R"(Database ")" + database_name.str() + R"(" is not exist.)";
+			return "Database " + database_name.str() + " is not exist.";
 
 		std::stringstream table_name;
 		while (pos < message.length()) {
@@ -390,9 +384,8 @@ std::string keilo_server::join_table(const std::string& message, u_int pos,
 		const auto selected_table =
 			selected_database->select_table(table_name.str());
 		if (!selected_table)
-			return R"(Table ")" + table_name.str() +
-				R"(" is not exist in database ")" + selected_database->get_name() +
-				R"(".)";
+			return "Table " + table_name.str() + 
+			"is not exist in database " + selected_database->get_name();
 
 		const auto joined_table = (*table)->join(selected_table);
 		(*database)->add_table(joined_table);
@@ -406,16 +399,14 @@ std::string keilo_server::join_table(const std::string& message, u_int pos,
 
 		const auto selected_table = (*database)->select_table(table_name.str());
 		if (!selected_table)
-			return R"(Table ")" + table_name.str() +
-				R"(" is not exist in database ")" + (*database)->get_name() +
-				R"(".)";
+			return "Table " + table_name.str() + 
+			" is not exist in database " + (*database)->get_name();
 
 		const auto joined_table = (*table)->join(selected_table);
 		(*database)->add_table(joined_table);
 	}
 
-	return R"(Successfully joined tables and added it to database ")" +
-		(*database)->get_name() + R"(".)";
+	return "Successfully joined tables and added it to database " + (*database)->get_name();
 }
 
 std::string keilo_server::drop_table(const std::string& message, u_int pos,
@@ -490,9 +481,9 @@ std::string keilo_server::select_record(const std::string& message, u_int pos,
 		if (const auto record =
 				(*table)->select_record(keilo_field{key.str(), value.str()});
 			record->size() <= 0)
-			selected_record << R"(There is no record that has ")" << value.str()
-				<< R"(" as )" << key.str() << " in table "
-				<< (*table)->get_name() << "." << std::endl;
+			selected_record << "There is no record that has " << value.str()
+				<< " as " << key.str() << " in table "
+				<< (*table)->get_name() << std::endl;
 		else {
 			selected_record << '{' << std::endl;
 			for (auto field = record->cbegin(); field != record->cend();) {

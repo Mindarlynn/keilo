@@ -58,9 +58,8 @@ std::string keilo_table::insert_record(const keilo_record& record) {
 			for (const auto& j_record : records)
 				for (const auto& j_field : j_record)
 					if (i_field == j_field)
-						return R"(Record that has index ")" + i_field.second +
-							R"(" is already exist in table ")" + get_name() +
-							R"(".)";
+						return "Record that has index " + i_field.second +
+						" is already exist in table " + get_name();
 
 			index = i_field.second;
 			pos = atoi(index.c_str());
@@ -74,8 +73,8 @@ std::string keilo_table::insert_record(const keilo_record& record) {
 
 	records.insert(it, record);
 
-	return R"(Successfully inserted record that has index")" + index +
-		R"(" to table ")" + get_name() + R"(".)";
+	return "Successfully inserted record that has index" + index +
+		" to table " + get_name();
 }
 
 std::string keilo_table::update_record(const keilo_field& from,
@@ -93,9 +92,8 @@ std::string keilo_table::update_record(const keilo_field& from,
 		if (found_record) break;
 	}
 	if (!found_record)
-		return "Record that has " + from.first + R"( ")" + from.second +
-			R"(" does not exist in table ")" + get_name() +
-			R"(".)";
+		return "Record that has " + from.first + ' ' + from.second +
+		" does not exist in table " + get_name();
 
 	auto changed = false;
 
@@ -106,11 +104,10 @@ std::string keilo_table::update_record(const keilo_field& from,
 			break;
 		}
 	if (!changed)
-		return R"(Identifier ")" + to.first + R"(" does not exist in table ")" +
-			get_name() + R"(".)";
-	return "Successfully updated record that has " + from.first + R"( ")" +
-		from.second + R"(" in table ")" + get_name() +
-		R"(".)";
+		return "(Identifier " + to.first + " does not exist in table " +
+		get_name();
+	return "Successfully updated record that has " + from.first + ' ' +
+		from.second + " in table " + get_name();
 }
 
 std::string keilo_table::remove_record(const keilo_field& where) {
@@ -126,13 +123,13 @@ std::string keilo_table::remove_record(const keilo_field& where) {
 			}
 		if (it != records.end()) break;
 	}
-		return "Record that has " + where.first + '\"' + where.second +
-			R"(" does not exist in table ")" + get_name() +
-			R"(".)";
-	return "Successfully removed record that has " + where.first + '\"' +
-		where.second + R"(" in table ")" + get_name() + '\"';
 	if (it == records.end())
+		return "Record that has " + where.first + ' ' + where.second +
+		" does not exist in table " + get_name();
+
 	records.erase(it);
+	return "Successfully removed record that has " + where.first + ' ' +
+		where.second + " in table " + get_name();
 }
 
 std::list<keilo_record> keilo_table::get_records() {
