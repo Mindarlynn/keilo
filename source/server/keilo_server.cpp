@@ -159,7 +159,7 @@ std::string keilo_server::process_message(const std::string& message,
                                           keilo_database** database,
                                           keilo_table** table) const {
 	std::string result;
-	u_int pos;
+	uint32_t pos;
 
 	if (message.find(CREATE) != std::string::npos) {
 		if (pos = message.find(DATABASE); pos != std::string::npos)
@@ -214,8 +214,8 @@ std::list<tcp_socket*>::iterator keilo_server::find_client(
 }
 
 std::string keilo_server::create_database(const std::string& message,
-                                          u_int pos) const {
-	if (pos >= message.length()) return "Syntax error.";
+                                          uint32_t pos) const {
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -232,7 +232,7 @@ std::string keilo_server::create_database(const std::string& message,
 }
 
 std::string keilo_server::select_database(
-	const std::string& message, u_int pos,
+	const std::string& message, uint32_t pos,
 	keilo_database** const database) const {
 	if (pos >= message.length()) return "Syntax error.";
 
@@ -254,7 +254,7 @@ std::string keilo_server::select_database(
 }
 
 std::string keilo_server::export_database(
-	const std::string& message, u_int pos,
+	const std::string& message, uint32_t pos,
 	keilo_database** const database) const {
 	if (!*database) return "Please select database";
 
@@ -279,8 +279,8 @@ std::string keilo_server::export_database(
 }
 
 std::string keilo_server::import_database(const std::string& message,
-                                          u_int pos) const {
-	if (pos >= message.length()) return "Syntax error.";
+                                          uint32_t pos) const {
+	if (pos >= message.length()) return "Syntax error";
 
 	while (pos < message.length()) {
 		if (message[pos] != SPACE) break;
@@ -296,7 +296,7 @@ std::string keilo_server::import_database(const std::string& message,
 	return application->import_file(file_name.str());
 }
 
-std::string keilo_server::create_table(const std::string& message, u_int pos,
+std::string keilo_server::create_table(const std::string& message, uint32_t pos,
                                        keilo_database** const database) {
 	if (!*database) return "Please select database.";
 
@@ -316,7 +316,7 @@ std::string keilo_server::create_table(const std::string& message, u_int pos,
 	return (*database)->create_table(name.str());
 }
 
-std::string keilo_server::select_table(const std::string& message, u_int pos,
+std::string keilo_server::select_table(const std::string& message, uint32_t pos,
                                        keilo_database** const database,
                                        keilo_table** const table) {
 	if (!*database) return "Please select database.";
@@ -351,7 +351,7 @@ std::string keilo_server::select_table(const std::string& message, u_int pos,
 	return "Successfully selected table named " + name.str();
 }
 
-std::string keilo_server::join_table(const std::string& message, u_int pos,
+std::string keilo_server::join_table(const std::string& message, uint32_t pos,
                                      keilo_database** const database,
                                      keilo_table** const table) const {
 	if (!*table) return "Please select table.";
@@ -409,7 +409,7 @@ std::string keilo_server::join_table(const std::string& message, u_int pos,
 	return "Successfully joined tables and added it to database " + (*database)->get_name();
 }
 
-std::string keilo_server::drop_table(const std::string& message, u_int pos,
+std::string keilo_server::drop_table(const std::string& message, uint32_t pos,
                                      keilo_database** const database,
                                      keilo_table** const table) {
 	if (!*database) return "Please select database.";
@@ -432,7 +432,7 @@ std::string keilo_server::drop_table(const std::string& message, u_int pos,
 	return (*database)->drop_table(name.str());
 }
 
-std::string keilo_server::select_record(const std::string& message, u_int pos,
+std::string keilo_server::select_record(const std::string& message, uint32_t pos,
                                         keilo_table** const table) {
 	if (!*table) return "Please select table.";
 
@@ -497,7 +497,7 @@ std::string keilo_server::select_record(const std::string& message, u_int pos,
 	return selected_record.str();
 }
 
-std::string keilo_server::insert_record(const std::string& message, u_int pos,
+std::string keilo_server::insert_record(const std::string& message, uint32_t pos,
                                         keilo_table** const table) {
 	if (!*table) return "Please select table";
 
@@ -540,7 +540,7 @@ std::string keilo_server::insert_record(const std::string& message, u_int pos,
 	return (*table)->insert_record(record);
 }
 
-std::string keilo_server::update_record(const std::string& message, u_int pos,
+std::string keilo_server::update_record(const std::string& message, uint32_t pos,
                                         keilo_table** const table) {
 	if (!*table) return "Please select table.";
 
@@ -583,7 +583,7 @@ std::string keilo_server::update_record(const std::string& message, u_int pos,
 		                keilo_field{new_key.str(), new_value.str()});
 }
 
-std::string keilo_server::remove_record(const std::string& message, u_int pos,
+std::string keilo_server::remove_record(const std::string& message, uint32_t pos,
                                         keilo_table** const table) {
 	if (!*table) return "Please select table.";
 

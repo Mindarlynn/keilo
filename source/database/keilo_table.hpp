@@ -57,7 +57,7 @@ public:
 	* \brief Get Count of records.
 	* \return Count of records.
 	*/
-	u_int count();
+	uint32_t count();
 
 	/**
 	* \brief Get Table's name

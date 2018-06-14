@@ -98,7 +98,7 @@ public:
 	* \param pos Iterator's position.
 	* \return Result of creating database
 	*/
-	std::string create_database(const std::string& message, u_int pos) const;
+	std::string create_database(const std::string& message, uint32_t pos) const;
 
 	/**
 	* \brief Select database.
@@ -107,7 +107,7 @@ public:
 	* \param database Selected database will be assigned into this variable.
 	* \return Result of selecting database
 	*/
-	std::string select_database(const std::string& message, u_int pos,
+	std::string select_database(const std::string& message, uint32_t pos,
 	                            keilo_database** const database) const;
 
 	/**
@@ -117,7 +117,7 @@ public:
 	* \param database Selected database.
 	* \return Result of exporting database
 	*/
-	std::string export_database(const std::string& message, u_int pos,
+	std::string export_database(const std::string& message, uint32_t pos,
 	                            keilo_database** const database) const;
 
 	/**
@@ -126,7 +126,7 @@ public:
 	* \param pos Iterator's position.
 	* \return Result of importing database.
 	*/
-	std::string import_database(const std::string& message, u_int pos) const;
+	std::string import_database(const std::string& message, uint32_t pos) const;
 
 	/**
 	* \brief Create table into the database.
@@ -135,7 +135,7 @@ public:
 	* \param database Selected database.
 	* \return Result of creating table.
 	*/
-	static std::string create_table(const std::string& message, u_int pos,
+	static std::string create_table(const std::string& message, uint32_t pos,
 	                                keilo_database** const database);
 
 	/**
@@ -146,7 +146,7 @@ public:
 	* \param table Selected table will be assigned into this variable.
 	* \return Result of selecting table
 	*/
-	static std::string select_table(const std::string& message, u_int pos,
+	static std::string select_table(const std::string& message, uint32_t pos,
 	                                keilo_database** const database,
 	                                keilo_table** const table);
 
@@ -158,7 +158,7 @@ public:
 	* \param table Selected table.
 	* \return Result of joining tables
 	*/
-	std::string join_table(const std::string& message, u_int pos,
+	std::string join_table(const std::string& message, uint32_t pos,
 	                       keilo_database** const database,
 	                       keilo_table** const table) const;
 
@@ -170,7 +170,7 @@ public:
 	* \param table Selected table.
 	* \return Result of dropping table.
 	*/
-	static std::string drop_table(const std::string& message, u_int pos,
+	static std::string drop_table(const std::string& message, uint32_t pos,
 	                              keilo_database** const database,
 	                              keilo_table** const table);
 
@@ -181,7 +181,7 @@ public:
 	* \param table Selected table.
 	* \return Selected records.
 	*/
-	static std::string select_record(const std::string& message, u_int pos,
+	static std::string select_record(const std::string& message, uint32_t pos,
 	                                 keilo_table** const table);
 
 	/**
@@ -191,7 +191,7 @@ public:
 	* \param table Selected table.
 	* \return Result of inserting record.
 	*/
-	static std::string insert_record(const std::string& message, u_int pos,
+	static std::string insert_record(const std::string& message, uint32_t pos,
 	                                 keilo_table** const table);
 
 	/**
@@ -201,7 +201,7 @@ public:
 	* \param table Selected table.
 	* \return Result of updating record.
 	*/
-	static std::string update_record(const std::string& message, u_int pos,
+	static std::string update_record(const std::string& message, uint32_t pos,
 	                                 keilo_table** const table);
 
 	/**
@@ -211,7 +211,7 @@ public:
 	* \param table Selected table.
 	* \return Result of removing record.
 	*/
-	static std::string remove_record(const std::string& message, u_int pos,
+	static std::string remove_record(const std::string& message, uint32_t pos,
 	                                 keilo_table** const table);
 #pragma endregion
 
