@@ -4,7 +4,6 @@
 
 #include <string>
 #include <mutex>
-#include <unordered_map>
 
 class keilo_table {
 public:
