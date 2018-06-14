@@ -2,17 +2,17 @@
 
 #include <mutex>
 
-keilo_table::keilo_table(const std::string& name) : name_(name), records_() {}
+keilo_table::keilo_table(const std::string& name) : name(name), records() {}
 
 keilo_table::keilo_table(const std::string& name,
                          const std::list<keilo_record>& rows)
-	: name_(name), records_(rows) {}
+	: name(name), records(rows) {}
 
 keilo_table::keilo_table(const keilo_table& other)
-	: name_(other.name_), records_(other.records_) {}
+	: name(other.name), records(other.records) {}
 
 keilo_table keilo_table::join(keilo_table* const other) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
 	const auto other_table{other->get_records()};
 	auto joined_table{get_records()};
 
@@ -40,22 +40,22 @@ keilo_table keilo_table::join(keilo_table* const other) {
 }
 
 keilo_record* keilo_table::select_record(const keilo_field& where) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
 
-	for (auto record : records_)
-		for (const auto field : record)
-			if (field == where) return &record;
+	for (auto& records : records)
+		for (const auto field : records)
+			if (field == where) return &records;
 	return nullptr;
 }
 
 std::string keilo_table::insert_record(const keilo_record& record) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
 	std::string index;
 	auto pos = 0;
 
 	for (auto& i_field : record)
 		if (i_field.first == "index") {
-			for (const auto& j_record : records_)
+			for (const auto& j_record : records)
 				for (const auto& j_field : j_record)
 					if (i_field == j_field)
 						return R"(Record that has index ")" + i_field.second +
@@ -68,11 +68,11 @@ std::string keilo_table::insert_record(const keilo_record& record) {
 		}
 
 	auto count = 0;
-	auto it = records_.begin();
+	auto it = records.begin();
 
-	while (it != records_.end() && ++count != pos) ++it;
+	while (it != records.end() && ++count != pos) ++it;
 
-	records_.insert(it, record);
+	records.insert(it, record);
 
 	return R"(Successfully inserted record that has index")" + index +
 		R"(" to table ")" + get_name() + R"(".)";
@@ -80,14 +80,14 @@ std::string keilo_table::insert_record(const keilo_record& record) {
 
 std::string keilo_table::update_record(const keilo_field& from,
                                        const keilo_field& to) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
 
 	keilo_record* found_record = nullptr;
 
-	for (auto& record : records_) {
-		for (const auto& field : record)
+	for (auto& records : records) {
+		for (const auto& field : records)
 			if (field == from) {
-				found_record = &record;
+				found_record = &records;
 				break;
 			}
 		if (found_record) break;
@@ -114,38 +114,37 @@ std::string keilo_table::update_record(const keilo_field& from,
 }
 
 std::string keilo_table::remove_record(const keilo_field& where) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
 
-	auto it = records_.end();
+	auto it = records.end();
 
-	for (auto record = records_.begin(); record != records_.end(); ++record) {
+	for (auto record = records.begin(); record != records.end(); ++record) {
 		for (auto field = record->begin(); field != record->end(); ++field)
 			if (*field == where) {
 				it = record;
 				break;
 			}
-		if (it != records_.end()) break;
+		if (it != records.end()) break;
 	}
-	if (it == records_.end())
 		return "Record that has " + where.first + '\"' + where.second +
 			R"(" does not exist in table ")" + get_name() +
 			R"(".)";
-
-	records_.erase(it);
 	return "Successfully removed record that has " + where.first + '\"' +
 		where.second + R"(" in table ")" + get_name() + '\"';
+	if (it == records.end())
+	records.erase(it);
 }
 
 std::list<keilo_record> keilo_table::get_records() {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
-	return records_;
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
+	return records;
 }
 
-u_int keilo_table::count() {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
-	return records_.size();
+uint32_t keilo_table::count() {
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
+	return records.size();
 }
 
-std::string keilo_table::get_name() const { return name_; }
+std::string keilo_table::get_name() const { return name; }
 
-void keilo_table::set_name(const std::string& name) { name_ = name; }
+void keilo_table::set_name(const std::string& name) { this->name = name; }

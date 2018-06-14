@@ -76,15 +76,16 @@ private:
 	/**
 	* \brief Table's name
 	*/
-	std::string name_;
+	std::string name;
 
 	/**
-	* \brief Mutex of `records_`.
+	* \brief Mutex of `records`.
 	*/
-	std::mutex mutex_;
+	std::mutex mutex;
 
 	/**
 	* \brief List of record.
 	*/
-	std::list<keilo_record> records_;
+	std::list<keilo_record> records;
+	
 };

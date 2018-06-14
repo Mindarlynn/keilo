@@ -39,12 +39,12 @@ public:
 	void stop();
 
 private:
-	SOCKET socket_;
+	SOCKET socket;
 	SOCKADDR_IN address_{};
-	int addr_len_;
+	int addr_len;
 
 	bool is_bound_ = false;
 	bool is_initialized_ = false;
 
-	string_process* processer_;
+	string_process* processer;
 };

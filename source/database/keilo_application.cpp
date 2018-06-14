@@ -11,21 +11,20 @@
 using json = nlohmann::json;
 
 std::string keilo_application::create_database(const std::string& name) {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	std::lock_guard<std::mutex> mutex_guard(mutex);
 
-	for (const auto& database : databases_)
+	for (const auto& database : databases)
 		if (database.get_name() == name)
-			return R"(Database that was named ")" + name +
-				R"(" already exist in application.)";
-	databases_.emplace_back(name);
+			return "Database that was named " + name + " already exist in application";
+	databases.emplace_back(name);
 
-	return R"(Successfully create database that was named ")" + name + R"(".)";
+	return "Successfully create database that was named " + name;
 }
 
 keilo_database* keilo_application::select_database(const std::string& name) {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
+	std::lock_guard<std::mutex> mutex_guard(mutex);
 
-	for (auto& database : databases_)
+	for (auto& database : databases)
 		if (database.get_name() == name) return &database;
 
 	return nullptr;
@@ -43,12 +42,12 @@ std::string keilo_application::import_file(const std::string& file_name) {
 	std::ifstream file(file_path.str());
 
 	if (!file)
-		return R"(File that was named ")" + file_name + R"(" does not exist.)";
+		return "File named " + file_name + " does not exist";
 
-	std::lock_guard<std::mutex> mutex_lock(mutex_);
-	databases_.emplace_back(&file);
+	std::lock_guard<std::mutex> mutex_lock(mutex);
+	databases.emplace_back(&file);
 
-	return R"(Successfully impotred file that was named ")" + file_name + R"(".)";
+	return "Successfully impotred file that was named " + file_name;
 }
 
 std::string keilo_application::export_database(const std::string& database_name,
@@ -85,11 +84,10 @@ std::string keilo_application::export_database(const std::string& database_name,
 		file.close();
 	}
 	catch (std::exception& e) { return e.what(); }
-	return R"(Successfully exported database that was named ")" + database_name +
-		R"(".)";
+	return "Successfully exported database that was named " + database_name;
 }
 
 std::list<keilo_database> keilo_application::get_databases() {
-	std::lock_guard<std::mutex> mutex_guard(mutex_);
-	return databases_;
+	std::lock_guard<std::mutex> mutex_guard(mutex);
+	return databases;
 }

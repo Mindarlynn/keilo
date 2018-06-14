@@ -47,10 +47,10 @@ private:
 	/**
 	* \brief Mutex of `databases_`.
 	*/
-	std::mutex mutex_;
+	std::mutex mutex;
 
 	/**
 	* \brief List of database.
 	*/
-	std::list<keilo_database> databases_;
+	std::list<keilo_database> databases;
 };

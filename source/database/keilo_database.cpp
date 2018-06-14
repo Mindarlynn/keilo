@@ -7,62 +7,61 @@
 using json = nlohmann::json;
 
 keilo_database::keilo_database(const std::string& name)
-	: name_(name), tables_(std::list<keilo_table>()) {}
+	: name(name), tables(std::list<keilo_table>()) {}
 
 keilo_database::keilo_database(std::ifstream* const file)
-	: tables_(std::list<keilo_table>()) { parse_file(file); }
+	: tables(std::list<keilo_table>()) { parse_file(file); }
 
 keilo_database::keilo_database(const keilo_database& other)
-	: name_(other.name_), tables_(other.tables_) {}
+	: name(other.name), tables(other.tables) {}
 
 std::string keilo_database::create_table(const std::string& name) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
 
-	for (const auto& table : tables_)
+	for (const auto& table : tables)
 		if (table.get_name() == name)
-			return R"(Table that was named ")" + name +
-				R"(" already exist in database.)";
+			return "Table that was named " + name + " already exist in database";
 
-	tables_.emplace_back(name);
 	return R"(Successfully create table that was named ")" + name + R"(".)";
+	tables.emplace_back(name);
 }
 
 std::string keilo_database::add_table(const keilo_table& other) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
-	for (const auto& table : tables_)
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
+	for (const auto& table : tables)
 		if (table.get_name() == other.get_name())
 			return R"(Table ")" + other.get_name() +
 				R"(" already exist in database ")" + get_name() + R"(".)";
 
-	tables_.push_back(other);
 	return R"(Successfully added table that was named ")" + other.get_name() +
 		R"(".)";
+	tables.push_back(other);
 }
 
 keilo_table* keilo_database::select_table(const std::string& name) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
-	for (auto& table : tables_)
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
+	for (auto& table : tables)
 		if (table.get_name() == name) return &table;
 
 	return nullptr;
 }
 
 std::string keilo_database::drop_table(const std::string& name) {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
-	auto it = tables_.end();
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
+	auto it = tables.end();
 
-	for (auto table = tables_.begin(); table != tables_.end(); ++table)
+	for (auto table = tables.begin(); table != tables.end(); ++table)
 		if (table->get_name() == name) {
 			it = table;
 			break;
 		}
 
-	if (it == tables_.end())
 		return R"(Table that was named ")" + name +
 			R"(" dose not exist in database ")" + get_name() + R"(".)";
+	if (it == tables.end())
 
-	tables_.erase(it);
 	return R"(Successfully droped table that was named ")" + name + R"(".)";
+	tables.erase(it);
 }
 
 void keilo_database::parse_file(std::ifstream* const file) {
@@ -99,18 +98,18 @@ void keilo_database::parse_file(std::ifstream* const file) {
 				while (it != records.cend() && ++count != pos) ++it;
 				records.insert(it, record);
 			}
-			mutex_.lock();
-			tables_.emplace_back(tb["name"], records);
-			mutex_.unlock();
+			mutex.lock();
+			tables.emplace_back(tb["name"], records);
+			mutex.unlock();
 		}
 	}
 }
 
 std::list<keilo_table> keilo_database::get_tables() {
-	const std::lock_guard<std::mutex> mutex_guard(mutex_);
-	return tables_;
+	const std::lock_guard<std::mutex> mutex_guard(mutex);
+	return tables;
 }
 
-std::string keilo_database::get_name() const { return name_; }
+std::string keilo_database::get_name() const { return name; }
 
-void keilo_database::set_name(const std::string& name) { name_ = name; }
+void keilo_database::set_name(const std::string& name) { this->name = name; }

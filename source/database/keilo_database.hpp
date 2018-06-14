@@ -69,15 +69,15 @@ private:
 	/**
 	* \brief Table's name.
 	*/
-	std::string name_;
+	std::string name;
 
 	/**
 	* \brief Mutex of `tables_`.
 	*/
-	std::mutex mutex_;
+	std::mutex mutex;
 
 	/**
 	* \brief List of table.
 	*/
-	std::list<keilo_table> tables_;
+	std::list<keilo_table> tables;
 };

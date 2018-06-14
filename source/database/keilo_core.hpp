@@ -2,7 +2,7 @@
 
 #include <string>
 #include <list>
-#include <winsock2.h>
+#include <WinSock2.h>
 #include <tcp_socket.hpp>
 
 #pragma comment(lib, "ws2_32.lib")
