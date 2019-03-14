@@ -1,5 +1,8 @@
 # keilo
 
+<i> for english user</i>
+[README_ENG.md](./README_ENG.md)
+
 keilo는 c++로 제작된 로컬 데이터베이스 입니다.. <br/>
 c++17버전을 기반으로 제작되었고, MSVC와 같은 상용 컴파일러로 컴파일 가능합니다. <br/>
 (Tested platform : Windows10 ver 1803(build 17134.649), Intel C++ Compiler 19.0) <br/>
@@ -7,10 +10,6 @@ c++17버전을 기반으로 제작되었고, MSVC와 같은 상용 컴파일러�
 ## 사용된 라이브러리
 
 JSON for Modern C++ (nlohmann) - https://github.com/nlohmann/json <br/>
-
-## 빌드방법
-원하는 대로 빌드하시면 됩니다. <br/>
-(정적 라이브러리 추천) <br/>
 
 ## 파일
 keilo는 하나의 json파일을 하나의 데이터베이스로 사용하고 있습니다. <br/>
