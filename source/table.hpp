@@ -27,7 +27,6 @@ namespace keilo {
 		size_t count();
 
 	private:
-		void set_name(std::string name);
 		std::string name;
 		std::string key;
 		std::mutex mutex;
