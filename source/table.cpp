@@ -188,7 +188,4 @@ namespace keilo {
 
 
 	std::string table::get_name() const { return name; }
-
-	void table::set_name(std::string name) { this->name = std::move(name); }
-
 }
