@@ -11,11 +11,11 @@ install:
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 90
 
 script: 
-  - g++ -c ./source/application.cpp -std=c++17
-  - g++ -c ./source/database.cpp -std=c++17
-  - g++ -c ./source/table.cpp -std=c++17
-  - g++ -c ./source/record.cpp -std=c++17
-  - g++ ./source/instance.cpp -std=c++17
+  - g++ -c ./source/application.cpp -std=c++17 -lstdc++fs
+  - g++ -c ./source/database.cpp -std=c++17 -lstdc++fs
+  - g++ -c ./source/table.cpp -std=c++17 -lstdc++fs
+  - g++ -c ./source/record.cpp -std=c++17 -lstdc++fs
+  - g++ ./source/instance.cpp -std=c++17 -lstdc++fs
   - ar rscv libkeilo.a ./source/application.o ./source/database.o ./source/table.o ./source/record.o ./source/instance.o
-  - g++ main ./test/main.cpp ./source/libkeilo.a -std=c++17
+  - g++ main ./test/main.cpp ./source/libkeilo.a -std=c++17 -lstdc++fs
   - ./main
