@@ -19,8 +19,7 @@ namespace keilo {
 		this->key.value = it->value;
 	}
 
-	record::record(const record& other) {
-		this->key = other.key;
+	record::record(const record& other) : key(other.key){
 		for (const auto& instance : other.instances)
 			this->instances.emplace_back(instance);
 	}
