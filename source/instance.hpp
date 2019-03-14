@@ -1,5 +1,5 @@
 #pragma once
-#include "core.hpp"
+#include "keilo.hpp"
 
 namespace keilo {
 	class instance {

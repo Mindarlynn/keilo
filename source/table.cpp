@@ -1,4 +1,4 @@
-#include "core.hpp"
+#include "keilo.hpp"
 
 namespace keilo {
 	table::table(std::string table_name, std::string key) : name(std::move(table_name)), key(std::move(key)) { }
