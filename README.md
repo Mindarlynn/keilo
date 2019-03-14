@@ -1,5 +1,6 @@
 # keilo
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/1f36e838c249434e90338f30b1dcb8e2)](https://app.codacy.com/app/Mindarlynn/keilo?utm_source=github.com&utm_medium=referral&utm_content=Mindarlynn/keilo&utm_campaign=Badge_Grade_Dashboard)
 [![Build Status](https://travis-ci.org/Mindarlynn/keilo.svg?branch=master)](https://travis-ci.org/Mindarlynn/keilo)<br/>
 <i> for english user</i>
 [README_ENG.md](./README_ENG.md)
