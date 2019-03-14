@@ -1,6 +1,7 @@
 # keilo
 
-[![Build Status](https://travis-ci.org/Mindarlynn/keilo.svg?branch=master)](https://travis-ci.org/Mindarlynn/keilo)<br/>
+[![Build Status](https://travis-ci.org/Mindarlynn/keilo.svg?branch=master)](https://travis-ci.org/Mindarlynn/keilo)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b652ca6925cf4292a779c37a227b777e)](https://www.codacy.com/app/Mindarlynn/keilo?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Mindarlynn/keilo&amp;utm_campaign=Badge_Grade)<br/>
 <i> for korean user</i>
 [README.md](./README.md)
 
