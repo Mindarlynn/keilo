@@ -17,5 +17,3 @@ script:
   - g++ -c ./source/record.cpp -std=c++17 -lstdc++fs
   - g++ -c ./source/instance.cpp -std=c++17 -lstdc++fs
   - ar rscv libkeilo.a ./application.o ./database.o ./table.o ./record.o ./instance.o
-  - g++ main ./test/main.cpp ./libkeilo.a -std=c++17 -lstdc++fs
-  - ./main
