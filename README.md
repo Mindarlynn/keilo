@@ -1,5 +1,6 @@
 # keilo
 
+[![Build Status](https://travis-ci.org/Mindarlynn/keilo.svg?branch=master)](https://travis-ci.org/Mindarlynn/keilo)<br/>
 <i> for english user</i>
 [README_ENG.md](./README_ENG.md)
 
