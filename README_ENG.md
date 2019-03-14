@@ -1,5 +1,8 @@
 # keilo
 
+<i> for korean user</i>
+[README.md](./README.md)
+
 keilo is the local database that was developed by C++.<br/>
 It was developed with C++17, and you can compile this project into a compiler such as MSVC.<br/>
 (Tested platform : Windows10 ver 1803(build 17134.649), Intel C++ Compiler 19.0) <br/>
