@@ -7,7 +7,7 @@ namespace keilo {
 		has_no_value,
 		cannot_find,
 		already_exist,
-		key_duplicated,
+		key_overlapped,
 		key_not_exist,
 		file_not_support
 	};

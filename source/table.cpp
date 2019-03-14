@@ -84,7 +84,7 @@ namespace keilo {
 		});
 
 		if (pos != records.cend())
-			return result_t::key_duplicated;
+			return result_t::key_overlapped;
 
 		records.insert(pos, record);
 
@@ -108,7 +108,7 @@ namespace keilo {
 			if (records.cend() != std::find_if(records.cbegin(), records.cend(),
 			                                   [&dup](const record& record) { return record.key == *dup; })
 			)
-				return result_t::key_duplicated;
+				return result_t::key_overlapped;
 
 		for (const auto& replacement : replacements) {
 			for (const auto& be_update : to_update) {
