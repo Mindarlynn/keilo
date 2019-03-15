@@ -61,7 +61,7 @@ enum class result_t{
     has_no_value,
     cannot_find,
     already_exist,
-    key_duplicated,
+    key_overlapped,
     key_not_exists,
     file_not_support
 };
@@ -126,11 +126,11 @@ std::string get_name() const;
 ### <b>table.hpp</b>
 ```C++
 // result_t::key_not_exist : 인자로 들어온 레코드에 테이블의 키값이 없는 경우
-// result_t::key_duplicated : 인자로 들어온 레코드와 동일한 키값을 가진 레코드가 테이블에 있는 경우
+// result_t::key_overlapped : 인자로 들어온 레코드와 동일한 키값을 가진 레코드가 테이블에 있는 경우
 // result_t::success
 result_t insert_record(const record& record);
 // result_t::cannot_find : 인자로 들어온 조건에 만족하는 레코드가 없을 경우
-// result_t::key_duplicated : 치환될 데이터 중 키값이 있을 때, 이 키값이 테이블에 존재하는 레코드의 키값과 중복될 경우
+// result_t::key_overlapped : 치환될 데이터 중 키값이 있을 때, 이 키값이 테이블에 존재하는 레코드의 키값과 중복될 경우
 // result_t::success
 result_t update_record(const std::list<keilo::instance>& conditions, const std::list<keilo::instance>& replacements);
 // result_t::cannot_find : 인자로 들어온 조건에 만족하는 레코드가 없을 경우
