@@ -223,11 +223,11 @@ int main() {
 		// (table.hpp)
 
 		// inserting
-		tb1->insert_record({ {{"name", "a"}, {"hobby", "soccer"}}, tb1->get_key() });
-		tb1->insert_record({ {{"name", "c"}, {"hobby", "baseball"}}, tb1->get_key() });
-		tb1->insert_record({ {{"name", "b"}, {"hobby", "basketball"}}, tb1->get_key() });
-		tb1->insert_record({ {{"name", "e"}, {"hobby", "game"}}, tb1->get_key() });
-		tb1->insert_record({ {{"name", "d"}, {"hobby", "movie"}}, tb1->get_key() });
+		tb1->insert_record({ { {"name", "a"}, {"hobby", "soccer"} }, tb1->get_key() });
+		tb1->insert_record({ { {"name", "c"}, {"hobby", "baseball"} }, tb1->get_key() });
+		tb1->insert_record({ { {"name", "b"}, {"hobby", "basketball"} }, tb1->get_key() });
+		tb1->insert_record({ { {"name", "e"}, {"hobby", "game"} }, tb1->get_key() });
+		tb1->insert_record({ { {"name", "d"}, {"hobby", "movie"} }, tb1->get_key() });
 
 		std::cout << "<<inserting>>" <<"\n\n";
 		for (auto& record : tb1->get_records())
