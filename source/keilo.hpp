@@ -18,7 +18,11 @@ namespace keilo {
 #include <mutex>
 #include <list>
 #include <algorithm>
+#ifdef _WIN32
+#include <filesystem>
+#elif linux || __APPLE__
 #include <experimental/filesystem>
+#endif
 #include <sstream>
 
 #include "instance.hpp"
