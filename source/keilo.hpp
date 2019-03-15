@@ -20,7 +20,7 @@ namespace keilo {
 #include <algorithm>
 #ifdef _WIN32
 #include <filesystem>
-#elif linux || __APPLE__
+#elif __linux__ || __APPLE__
 #include <experimental/filesystem>
 #endif
 #include <sstream>
