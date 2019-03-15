@@ -15,6 +15,7 @@ JSON for Modern C++ (nlohmann) - https://github.com/nlohmann/json <br/>
 
 ## 파일
 keilo는 하나의 json파일을 하나의 데이터베이스로 사용하고 있습니다. <br/>
+데이터베이스에 들어갈 레코드는 반드시 사용자가 지정한 키값에 대한 pair가 존재해야 합니다.<br/>
 
 ### 파일 - 예시
 
