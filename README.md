@@ -15,6 +15,7 @@ JSON for Modern C++ (nlohmann) - https://github.com/nlohmann/json <br/>
 
 ## 파일
 keilo는 하나의 json파일을 하나의 데이터베이스로 사용하고 있습니다. <br/>
+데이터베이스에 들어갈 레코드는 반드시 사용자가 지정한 키값에 대한 pair가 존재해야 합니다.<br/>
 
 ### 파일 - 예시
 
@@ -61,7 +62,7 @@ enum class result_t{
     has_no_value,
     cannot_find,
     already_exist,
-    key_duplicated,
+    key_overlapped,
     key_not_exists,
     file_not_support
 };
@@ -126,11 +127,11 @@ std::string get_name() const;
 ### <b>table.hpp</b>
 ```C++
 // result_t::key_not_exist : 인자로 들어온 레코드에 테이블의 키값이 없는 경우
-// result_t::key_duplicated : 인자로 들어온 레코드와 동일한 키값을 가진 레코드가 테이블에 있는 경우
+// result_t::key_overlapped : 인자로 들어온 레코드와 동일한 키값을 가진 레코드가 테이블에 있는 경우
 // result_t::success
 result_t insert_record(const record& record);
 // result_t::cannot_find : 인자로 들어온 조건에 만족하는 레코드가 없을 경우
-// result_t::key_duplicated : 치환될 데이터 중 키값이 있을 때, 이 키값이 테이블에 존재하는 레코드의 키값과 중복될 경우
+// result_t::key_overlapped : 치환될 데이터 중 키값이 있을 때, 이 키값이 테이블에 존재하는 레코드의 키값과 중복될 경우
 // result_t::success
 result_t update_record(const std::list<keilo::instance>& conditions, const std::list<keilo::instance>& replacements);
 // result_t::cannot_find : 인자로 들어온 조건에 만족하는 레코드가 없을 경우
@@ -223,11 +224,11 @@ int main() {
 		// (table.hpp)
 
 		// inserting
-		tb1->insert_record({ {{"name", "a"}, {"hobby", "soccer"}}, tb1->get_key() });
-		tb1->insert_record({ {{"name", "c"}, {"hobby", "baseball"}}, tb1->get_key() });
-		tb1->insert_record({ {{"name", "b"}, {"hobby", "basketball"}}, tb1->get_key() });
-		tb1->insert_record({ {{"name", "e"}, {"hobby", "game"}}, tb1->get_key() });
-		tb1->insert_record({ {{"name", "d"}, {"hobby", "movie"}}, tb1->get_key() });
+		tb1->insert_record({ { {"name", "a"}, {"hobby", "soccer"} }, tb1->get_key() });
+		tb1->insert_record({ { {"name", "c"}, {"hobby", "baseball"} }, tb1->get_key() });
+		tb1->insert_record({ { {"name", "b"}, {"hobby", "basketball"} }, tb1->get_key() });
+		tb1->insert_record({ { {"name", "e"}, {"hobby", "game"} }, tb1->get_key() });
+		tb1->insert_record({ { {"name", "d"}, {"hobby", "movie"} }, tb1->get_key() });
 
 		std::cout << "<<inserting>>" <<"\n\n";
 		for (auto& record : tb1->get_records())
