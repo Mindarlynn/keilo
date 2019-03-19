@@ -20,7 +20,7 @@ namespace keilo {
 	}
 
 	table table::join(table& other) {
-		std::unique_lock<std::mutex> lock(this->mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 		auto joined_table{records};
 		auto other_table{other.records};
 
@@ -31,10 +31,16 @@ namespace keilo {
 						other_record.key.value == origin_record.key.value)
 						origin_record.instances.emplace_back(other_instance);
 
-		return {get_name() + '+' + other.get_name(), key, joined_table};
+		return {name + '+' + other.name, key, joined_table};
 	}
 
-	std::list<record> table::select_record(const std::list<instance>& conditions) const {
+	std::list<record> table::select_record(std::map<std::string, std::string >& conditions) {
+		std::unique_lock<std::mutex> lock{this->mutex};
+
+		if (!conditions[key].empty())
+			if (!hashed_keys[conditions[key]])
+				return {};
+
 		auto dump = records;
 		auto selected = std::list<record>();
 
@@ -68,46 +74,31 @@ namespace keilo {
 	}
 
 	result_t table::insert_record(const record& record) {
-		std::unique_lock<std::mutex> lock(this->mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 
 		if (record.key.identifier != this->key)
 			return result_t::key_not_exist;
 
-		const auto val = record.key.value;
-
-		const auto pos = std::find_if(records.cbegin(), records.cend(), [this, val](const keilo::record& record) {
-			return record.instances.cend() != std::find_if(record.instances.cbegin(), record.instances.cend(),
-			                                               [this, val](const instance& instance) {
-				                                               return instance.identifier == key && instance.value ==
-					                                               val;
-			                                               });
-		});
-
-		if (pos != records.cend())
+		if(hashed_keys[record.key.value])
 			return result_t::key_overlapped;
 
-		records.insert(pos, record);
+		hashed_keys[record.key.value] = true;
+		records.push_back(record);
 
 		return result_t::success;
 	}
 
-	result_t table::update_record(const std::list<instance>& conditions, const std::list<instance>& replacements) {
-		std::unique_lock<std::mutex> lock(mutex);
-
+	result_t table::update_record(std::map<std::string, std::string>& conditions, std::map<std::string, std::string>& replacements) {
 		// find suitable records
 		const auto to_update = select_record(conditions);
 
 		if (to_update.empty())
 			return result_t::cannot_find;
 
-		// check duplication of instance of key if there is modifying of key
-		const auto dup = std::find_if(replacements.cbegin(), replacements.cend(),
-		                              [this](const instance& instance) { return instance.identifier == key; }
-		);
-		if (dup != replacements.cend())
-			if (records.cend() != std::find_if(records.cbegin(), records.cend(),
-			                                   [&dup](const record& record) { return record.key == *dup; })
-			)
+		std::unique_lock<std::mutex> lock{this->mutex};
+
+		if (!replacements[key].empty())
+			if (hashed_keys[replacements[key]])
 				return result_t::key_overlapped;
 
 		for (const auto& replacement : replacements) {
@@ -118,24 +109,28 @@ namespace keilo {
 
 				auto it = std::find_if(rt->instances.begin(), rt->instances.end(),
 				                       [replacement](const instance& instance) {
-					                       return replacement.identifier == instance.identifier;
+					                       return replacement.first == instance.identifier;
 				                       }
 				);
-				it->value = replacement.value;
+				it->value = replacement.second;
 			}
 		}
 
 		return result_t::success;
 	}
 
-	result_t table::remove_record(const std::list<instance>& conditions) {
-		std::unique_lock<std::mutex> lock(mutex);
-
+	result_t table::remove_record(std::map<std::string, std::string>& conditions) {
 		const auto selected_records = this->select_record(conditions);
 
 		// when program cannot find suitable records
 		if (selected_records.empty())
 			return result_t::cannot_find;
+
+		std::unique_lock<std::mutex> lock{this->mutex};
+
+		if (!conditions[key].empty())
+			if (!hashed_keys[conditions[key]])
+				return result_t::cannot_find;
 
 		for (const auto& selected_record : selected_records) {
 			auto it = std::find_if(this->records.cbegin(), this->records.cend(),
@@ -146,8 +141,9 @@ namespace keilo {
 			if (it != this->records.cend()) {
 				auto tmp = it;
 				++tmp;
+
+				hashed_keys[it->key.value] = false;
 				records.erase(it);
-				it = tmp;
 			}
 		}
 
@@ -155,12 +151,12 @@ namespace keilo {
 	}
 
 	std::list<record> table::get_records() {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 		return records;
 	}
 
 	size_t table::count() {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 		return records.size();
 	}
 

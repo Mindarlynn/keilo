@@ -14,6 +14,7 @@ namespace keilo {
 
 	private:
 		std::mutex mutex;
+		std::map<std::string, bool> hashed_databases;
 		std::list<database> databases;
 	};
 }

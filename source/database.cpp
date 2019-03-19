@@ -7,57 +7,60 @@ namespace keilo {
 
 	database::database(std::ifstream& file) { parse_file(file); }
 
-	database::database(const database& other) : name(other.name) {
+	database::database(const database& other){
+		this->name = other.name;
 		for (const auto& table : other.tables)
 			this->tables.emplace_back(table);
 	}
 
 	result_t database::create_table(const std::string& table_name, const std::string& key) {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 
-		if (tables.cend() != std::find_if(tables.begin(), tables.end(),
-		                                  [table_name](const table& table) { return table.get_name() == table_name; })
-		)
+		if (hashed_tables[table_name])
 			return result_t::already_exist;
 
+		hashed_tables[table_name] = true;
 		tables.emplace_back(table_name, key);
 		return result_t::success;
 	}
 
 	result_t database::add_table(const table& other) {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 
-		if (tables.cend() != std::find_if(tables.begin(), tables.end(),
-		                                  [other](const table& table) { return table.get_name() == other.get_name(); })
-		)
+		if (hashed_tables[other.get_name()])
 			return result_t::already_exist;
 
+		hashed_tables[other.get_name()] = true;
 		tables.emplace_back(other);
 		return result_t::success;
 	}
 
 	result_t database::drop_table(const std::string& table_name) {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 
+		if (!hashed_tables[table_name])
+			return result_t::cannot_find;
+		
 		const auto it = std::find_if(tables.begin(), tables.end(), [table_name](const table& table) {
 			return table_name == table.get_name();
 		});
 
-		if (it == tables.end())
-			return result_t::cannot_find;
-
+		hashed_tables[it->get_name()] = false;
 		tables.erase(it);
 		return result_t::success;
 	}
 
 	table* database::select_table(const std::string& table_name) {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
+
+		if (!hashed_tables[table_name])
+			return nullptr;
 
 		const auto it = std::find_if(tables.begin(), tables.end(), [table_name](const table& table) {
 			return table_name == table.get_name();
 		});
 
-		return it == tables.end() ? nullptr : &*it;
+		return &*it;
 	}
 
 	void database::parse_file(std::ifstream& file) {
@@ -97,7 +100,7 @@ namespace keilo {
 	}
 
 	std::list<table> database::get_tables() {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 		return tables;
 	}
 

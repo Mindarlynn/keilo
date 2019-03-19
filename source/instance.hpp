@@ -11,6 +11,7 @@ namespace keilo {
 		instance(const std::string& identifier, const std::string& value);
 
 		bool operator==(const instance& other) const;
+		bool operator==(const std::pair<std::string, std::string>& other) const;
 		friend std::ostream& operator<<(std::ostream& os, const instance& p);
 
 		std::string get_identifier() const;

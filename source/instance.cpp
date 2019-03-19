@@ -10,6 +10,10 @@ namespace keilo {
 		return this->identifier == other.identifier && this->value == other.value;
 	}
 
+	bool instance::operator==(const std::pair<std::string, std::string>& other) const {
+		return this->identifier == other.first && this->value == other.second;
+	}
+
 	std::string instance::get_identifier() const { return this->identifier; }
 	std::string instance::get_value() const { return this->value; }
 

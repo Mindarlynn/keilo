@@ -11,9 +11,9 @@ namespace keilo {
 		table& operator=(const table& other);
 
 		result_t insert_record(const record& record);
-		result_t update_record(const std::list<instance>& conditions, const std::list<instance>& replacements);
-		result_t remove_record(const std::list<instance>& conditions);
-		std::list<record> select_record(const std::list<instance>& conditions) const;
+		result_t update_record(std::map<std::string ,std::string>& conditions, std::map<std::string, std::string>& replacements);
+		result_t remove_record(std::map<std::string, std::string>& conditions);
+		std::list<record> select_record(std::map<std::string, std::string>& conditions);
 
 		table join(table&);
 
@@ -29,6 +29,7 @@ namespace keilo {
 	private:
 		std::string name;
 		std::string key;
+		std::map<std::string, bool> hashed_keys;
 		std::mutex mutex;
 		std::list<record> records;
 	};

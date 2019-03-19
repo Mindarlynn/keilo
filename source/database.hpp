@@ -23,6 +23,7 @@ namespace keilo {
 	private:
 		void set_name(const std::string& name);
 		std::string name;
+		std::map<std::string, bool> hashed_tables;
 		std::mutex mutex;
 		std::list<table> tables = std::list<table>();
 	};

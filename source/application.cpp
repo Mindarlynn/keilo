@@ -5,57 +5,54 @@ using json = nlohmann::json;
 namespace keilo {
 
 	result_t application::create_database(const std::string& database_name) {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 
-		const auto it = std::find_if(databases.cbegin(), databases.cend(), [database_name](const database& database) {
-			return database.get_name() == database_name;
-		});
-
-		if (it != databases.cend())
+		if(hashed_databases[database_name])
 			return result_t::already_exist;
 
+		hashed_databases[database_name] = true;
 		databases.emplace_back(database_name);
 
 		return result_t::success;
 	}
 
-	result_t application::add_database(const database& other) {
-		const auto it = std::find_if(databases.begin(), databases.end(), [other](const database& db) {
-			return other.get_name() == db.get_name();
-		});
+	result_t application::add_database(const database& database) {
+		std::unique_lock<std::mutex> lock(mutex);
 
-		if (it != databases.end())
+		if(hashed_databases[database.get_name()])
 			return result_t::already_exist;
 
-		databases.emplace_back(other);
+		hashed_databases[database.get_name()] = true;
+		databases.emplace_back(database);
 
 		return result_t::success;
 	}
 
 	result_t application::drop_database(const std::string& database_name) {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
+
+		if (!hashed_databases[database_name])
+			return result_t::cannot_find;
 
 		const auto it = std::find_if(databases.begin(), databases.end(), [database_name](const database& database) {
 			return database.get_name() == database_name;
 		});
 
-		if (it == databases.end())
-			return result_t::cannot_find;
-
+		hashed_databases[it->get_name()] = false;
 		databases.erase(it);
 
 		return result_t::success;
 	}
 
 	database* application::select_database(const std::string& database_name) {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
+
+		if (!hashed_databases[database_name])
+			return nullptr;
 
 		const auto it = std::find_if(databases.begin(), databases.end(), [database_name](const database& database) {
 			return database.get_name() == database_name;
 		});
-
-		if (it == databases.end())
-			return nullptr;
 
 		return &*it;
 	}
@@ -73,7 +70,7 @@ namespace keilo {
 		if (!file)
 			return result_t::cannot_find;
 
-		std::unique_lock<std::mutex> mutex_lock(mutex);
+		std::unique_lock<std::mutex> mutex_lock{this->mutex};
 		databases.emplace_back(file);
 
 		return result_t::success;
@@ -116,7 +113,7 @@ namespace keilo {
 	}
 
 	std::list<database> application::get_databases() {
-		std::unique_lock<std::mutex> lock(mutex);
+		std::unique_lock<std::mutex> lock{this->mutex};
 		return this->databases;
 	}
 }
