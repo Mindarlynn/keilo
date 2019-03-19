@@ -1,5 +1,18 @@
 #pragma once
 
+#include <string>
+#include <fstream>
+#include <mutex>
+#include <list>
+#include <map>
+#include <algorithm>
+#ifdef _WIN32
+#include <filesystem>
+#elif __linux__ || __APPLE__
+#include <experimental/filesystem>
+#endif
+#include <sstream>
+
 namespace keilo {
 	enum class result_t {
 		success = 0,
@@ -12,18 +25,6 @@ namespace keilo {
 		file_not_support
 	};
 }
-
-#include <string>
-#include <fstream>
-#include <mutex>
-#include <list>
-#include <algorithm>
-#ifdef _WIN32
-#include <filesystem>
-#elif __linux__ || __APPLE__
-#include <experimental/filesystem>
-#endif
-#include <sstream>
 
 #include "instance.hpp"
 #include "record.hpp"
