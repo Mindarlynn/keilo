@@ -237,8 +237,23 @@ int main() {
 				std::cout << instance <<"\n\n";
 		std::cout << std::endl;
 
+		// selecting
+		std::map<std::string, std::string> condition0 = {
+			{"name", "c"}
+		};
+		std::cout << "<<selecting record>>" << "\n\n";
+		for (auto& record : tb1->select_record(condition0))
+			for (const auto& instance : record())
+				std::cout << instance << "\n\n";
+
 		// updating
-		tb1->update_record({ {"name", "a"} }, { {"hobby", "jogging"} });
+		std::map<std::string, std::string > condition1 = {
+			{"name", "a"}
+		};
+		std::map<std::string, std::string> replacement1 = {
+			{"hobby", "jogging"}
+		};
+		tb1->update_record(condition1, replacement1);
 
 		std::cout << "<<updating>>" <<"\n\n";
 		for (auto& record : tb1->get_records())
@@ -247,7 +262,10 @@ int main() {
 		std::cout << std::endl;
 
 		// removing
-		tb1->remove_record({ {"hobby", "jogging"} });
+		std::map<std::string, std::string> condition2 = {
+			{"hobby", "jogging"}
+		};
+		tb1->remove_record(condition2);
 
 		std::cout << "<<removing>>" <<"\n\n";
 		for (auto& record : tb1->get_records())
