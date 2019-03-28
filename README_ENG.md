@@ -132,14 +132,14 @@ result_t insert_record(const record& record);
 // result_t::cannot_find : No records are available that meet the conditions entered by the parameter.
 // result_t::key_overlapped : When any of the values to be exchanged have a key value, that key value overlaps the record present in the table.
 // result_t::success
-result_t update_record(const std::list<keilo::instance>& conditions, const std::list<keilo::instance>& replacements);
+result_t update_record(const std::map<keilo::instance>& conditions, const std::map<keilo::instance>& replacements);
 // result_t::cannot_find : No records are available that meet the conditions entered by the parameter.
 // result_t::success
-result_t remove_record(const std::list<keilo::instance>& conditions);
+result_t remove_record(const std::map<keilo::instance>& conditions);
 
 // Success : Returns all records that meet the condition
 // Fail : std::runtime_error
-std::list<record> select_record(const std::list<keilo::instance>& conditions) const;
+std::list<record> select_record(const std::map<keilo::instance>& conditions) const;
 
 // Returns one table of innner join with table entered by parameter
 keilo::table join(keilo::table& table);
