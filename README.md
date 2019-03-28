@@ -133,14 +133,14 @@ result_t insert_record(const record& record);
 // result_t::cannot_find : 인자로 들어온 조건에 만족하는 레코드가 없을 경우
 // result_t::key_overlapped : 치환될 데이터 중 키값이 있을 때, 이 키값이 테이블에 존재하는 레코드의 키값과 중복될 경우
 // result_t::success
-result_t update_record(const std::list<keilo::instance>& conditions, const std::list<keilo::instance>& replacements);
+result_t update_record(const std::map<keilo::instance>& conditions, const std::map<keilo::instance>& replacements);
 // result_t::cannot_find : 인자로 들어온 조건에 만족하는 레코드가 없을 경우
 // result_t::success
-result_t remove_record(const std::list<keilo::instance>& conditions);
+result_t remove_record(const std::map<keilo::instance>& conditions);
 
 // 성공 : Suitable한 모든 레코드를 반환
 // 실패 : std::runtime_error
-std::list<record> select_record(const std::list<keilo::instance>& conditions) const;
+std::list<record> select_record(const std::map<keilo::instance>& conditions) const;
 
 // 인자로 들어온 테이블과의 inner join한 테이블을 반환
 keilo::table join(keilo::table& table);
