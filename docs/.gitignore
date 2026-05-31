@@ -1,0 +1,15 @@
+*
+!.gitignore
+!README.md
+!rule/
+!rule/**
+!plan/
+!plan/README.md
+!plan/active/
+!plan/active/.gitkeep
+!plan/completed/
+!plan/completed/.gitkeep
+!plan/archived/
+!plan/archived/.gitkeep
+!log/
+!log/README.md
